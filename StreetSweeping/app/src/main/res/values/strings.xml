@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">StreetSweeping</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="parkhere">Park Here!</string>
+    <string name="clear">Clear!</string>
+    <string name="sweepdate">SWEEPING DATE:</string>
+    <string name="nextsweep">NEXT SWEEPING:</string>
+</resources>
