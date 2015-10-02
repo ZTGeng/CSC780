@@ -1,6 +1,12 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
 
+-- Week 9.27 - 10.3 --
+-1. Enabled the GPS to show current location
+-2. Enabled clicking map to show address in textview
+-3. Got street sweeping of San Francisco info kml files
+-4. Understood how kml works
+
 -- Week 9.20 - 9.26 --
 -1. Created the project from scratch
 -2. Added Google Map

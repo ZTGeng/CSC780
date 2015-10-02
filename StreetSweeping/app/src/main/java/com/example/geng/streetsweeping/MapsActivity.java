@@ -47,30 +47,30 @@ public class MapsActivity extends FragmentActivity {
             @Override
             public void onLocationChanged(Location location) {
                 //System.out.println("Location updated: " + location.getLatitude() + " " + location.getLongitude());
+                //System.out.println("Is the location has bearing? " + location.hasBearing());
             }
-
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
 
             }
-
             @Override
             public void onProviderEnabled(String provider) {
 
             }
-
             @Override
             public void onProviderDisabled(String provider) {
 
             }
         };
 
-        showLastKnownLocation();
+        // No need to call this method in onCreate since it will be called in onResume?
+        //showLastKnownLocation();
 
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         } catch (SecurityException e) {
             // No permission!!
+            e.printStackTrace();
         }
 
     }
@@ -79,6 +79,7 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+        showLastKnownLocation();
     }
 
     /**
@@ -121,18 +122,7 @@ public class MapsActivity extends FragmentActivity {
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                Geocoder geocoder = new Geocoder(MapsActivity.this.getApplicationContext(), Locale.getDefault());
-                try {
-                    List<Address> addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-                    //System.out.println(addressList.get(0));
-                    if (addressList != null && !addressList.isEmpty()) {
-                        if (addressList.get(0).getMaxAddressLineIndex() > 0) {
-                            streetName.setText(addressList.get(0).getAddressLine(0));
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                showStreetName(latLng);
             }
         });
     }
@@ -143,22 +133,8 @@ public class MapsActivity extends FragmentActivity {
             Criteria criteria = new Criteria();
             String bestProvider = locationManager.getBestProvider(criteria, true);
             Location lastLocation = locationManager.getLastKnownLocation(bestProvider);
-
             centerMap(lastLocation);
-
-            Geocoder geocoder = new Geocoder(MapsActivity.this.getApplicationContext(), Locale.getDefault());
-            try {
-                List<Address> addressList = geocoder.getFromLocation(lastLocation.getLatitude(), lastLocation.getLongitude(), 1);
-                //System.out.println(addressList.get(0).getAddressLine(0));
-                if (addressList != null && !addressList.isEmpty()) {
-                    if (addressList.get(0).getMaxAddressLineIndex() > 0) {
-                        streetName.setText(addressList.get(0).getAddressLine(0));
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            showStreetName(lastLocation);
         } else {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
                     ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -175,11 +151,36 @@ public class MapsActivity extends FragmentActivity {
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
 //        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
         float bearing = 0;
+        //System.out.println("Last location has bearing? " + location.hasBearing());
         if (location.hasBearing()) {
             bearing = location.getBearing();
         }
         CameraPosition cameraPosition = new CameraPosition(new LatLng(location.getLatitude(), location.getLongitude()),
                 16, 0, bearing);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.getUiSettings().setCompassEnabled(true);
+    }
+
+    private void showStreetName(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(MapsActivity.this.getApplicationContext(), Locale.getDefault());
+        try {
+            List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
+            //System.out.println(addressList.get(0).getAddressLine(0));
+            if (addressList != null && !addressList.isEmpty()) {
+                if (addressList.get(0).getMaxAddressLineIndex() > 0) {
+                    streetName.setText(addressList.get(0).getAddressLine(0));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showStreetName(Location location) {
+        showStreetName(location.getLatitude(), location.getLongitude());
+    }
+
+    private void showStreetName(LatLng latLng) {
+        showStreetName(latLng.latitude, latLng.longitude);
     }
 }
