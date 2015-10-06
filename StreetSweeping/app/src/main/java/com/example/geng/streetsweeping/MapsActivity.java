@@ -34,13 +34,32 @@ public class MapsActivity extends FragmentActivity {
     LocationManager locationManager;
 
     TextView streetName;
+    TextView sweepDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
         streetName = (TextView) findViewById(R.id.streetname);
+        sweepDate = (TextView) findViewById(R.id.sweepdate);
         setUpMapIfNeeded();
+
+        /**
+         * Test!! Will Delete!! (Should move to setUpMap)
+         */
+        GoogleMap.OnCameraChangeListener onCameraChangeListener = new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                // Test!!
+                String str = cameraPosition.target.latitude + " " + cameraPosition.target.longitude +
+                        " Z: " + cameraPosition.zoom + " b: " + cameraPosition.bearing;
+                sweepDate.setText(str);
+            }
+        };
+
+        mMap.setOnCameraChangeListener(onCameraChangeListener);
+
+        // Test end!!
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListener = new LocationListener() {
