@@ -5,10 +5,12 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -16,37 +18,42 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-
-import java.util.Locale;
 
 public class MapsActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final float BLUE = BitmapDescriptorFactory.HUE_AZURE;
+    private static final float RED  = BitmapDescriptorFactory.HUE_RED;
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     GoogleApiClient mGoogleApiClient;
+    Marker mMarker;
+    boolean userMoveMap;
 
     StreetViewer streetViewer;
     StreetDAO streetDAO;
 
-    TextView streetName;
-    TextView sweepDate;
+    TextView streetNameTextView;
+    TextView sweepDateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("-------------onCreate-------------");
         setContentView(R.layout.main_layout);
+        userMoveMap = true;
 
         setUpMapIfNeeded();
 
         streetViewer = new StreetViewer(mMap);
         streetDAO = new StreetDAO(new DBHelper(this));
-        streetName = (TextView) findViewById(R.id.streetname);
-        sweepDate = (TextView) findViewById(R.id.sweepdate);
+        streetNameTextView = (TextView) findViewById(R.id.streetname);
+        sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
@@ -83,8 +90,7 @@ public class MapsActivity extends FragmentActivity
     }
 
     /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
+     * This is where we can add markers or lines, add listeners or move the camera
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
@@ -96,67 +102,134 @@ public class MapsActivity extends FragmentActivity
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                showStreetName(latLng);
+                showAddressAndMarker(latLng, RED);
             }
         });
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
+                System.out.println("Camera is Changing!!!!!!!");
+                if (userMoveMap) {
+                    if (mMarker != null) {
+                        System.out.println("Trying to hide infoWindow!!");
+                        mMarker.hideInfoWindow();
+                    }
+                } else {
+                    userMoveMap = true;
+                }
+                if (cameraPosition.zoom > 15) {
+                    setUpStreets();
+                }
                 // Test!!
                 String str = cameraPosition.target.latitude + " " + cameraPosition.target.longitude +
                         " Z: " + cameraPosition.zoom + " b: " + cameraPosition.bearing;
-                sweepDate.setText(str);
+                sweepDateTextView.setText(str);
             }
         });
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
+                userMoveMap = false;
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
-                    showStreetName(mLastLocation);
+                    showAddressAndMarker(mLastLocation, BLUE);
                 }
+                centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
+                return true;
+            }
+        });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                userMoveMap = false;
+                //marker.showInfoWindow(); // If we don't want to center to marker, uncomment this line and return true;
                 return false;
+            }
+        });
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                // Set Alert!
             }
         });
     }
 
+    /**
+     * Center the map to the location, zoom to 16, without tilt or bearing.
+     * @param location the new center of the map.
+     */
     private void centerMap(Location location) {
-        float bearing = 0;
-        if (location.hasBearing()) {
-            bearing = location.getBearing();
-        }
-        CameraPosition cameraPosition = new CameraPosition(new LatLng(location.getLatitude(), location.getLongitude()),
-                16, 0, bearing);
+        CameraPosition cameraPosition = new CameraPosition(locToLat(location), 16, 0, 0);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-    }
-
-    private void showStreetName(double latitude, double longitude) {
-        Geocoder geocoder = new Geocoder(MapsActivity.this.getApplicationContext(), Locale.getDefault());
-        try {
-            List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
-            //System.out.println(addressList.get(0).getAddressLine(0));
-            if (addressList != null && !addressList.isEmpty()) {
-                if (addressList.get(0).getMaxAddressLineIndex() > 0) {
-                    streetName.setText(addressList.get(0).getAddressLine(0));
-                    //streetName.setText(latitude + " " + longitude);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void showStreetName(Location location) {
-        showStreetName(location.getLatitude(), location.getLongitude());
-    }
-
-    private void showStreetName(LatLng latLng) {
-        showStreetName(latLng.latitude, latLng.longitude);
     }
 
     private void setUpStreets() {
         List<Street> streets = streetDAO.getStreetsOnScreen(mMap.getProjection().getVisibleRegion().latLngBounds);
         streetViewer.addStreets(streets);
+    }
+
+    /**
+     * Get address information of a location by Geocoder service.
+     * @param latLng A location on the map.
+     * @return A String array containing address lines or non-found hint.
+     */
+    private String[] getStreetName(LatLng latLng) {
+        String[] address;
+        Geocoder geocoder = new Geocoder(MapsActivity.this.getApplicationContext(), Locale.getDefault());
+        try {
+            List<Address> addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addressList != null && !addressList.isEmpty()) {
+                address = new String[addressList.get(0).getMaxAddressLineIndex()];
+                for (int i = 0; i < address.length; i++) {
+                    address[i] = addressList.get(0).getAddressLine(i);
+                }
+                return address;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        address = new String[] { getString(R.string.invalid_address) };
+        return address;
+    }
+
+    /**
+     * Add a Marker at a location on the map and popup the InfoWindow.
+     * @param latLng A location on the map.
+     * @param color Color of the Marker.
+     * @param streetName Address of the location to be shown on infoWindow.
+     */
+    private void addMarkerAndInfoWindow(LatLng latLng, float color, String streetName) {
+        mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(color))
+                .title(streetName).snippet(getString(R.string.invalid_date)));// + System.getProperty("line.separator") + "Set Alert!"));
+
+        mMarker.showInfoWindow();
+    }
+
+    /**
+     * Call {@link #getStreetName(LatLng)} to get address of a location,
+     * then set {@link #streetNameTextView} with the whole address.
+     * Then clear the map and redraw the street lines, and active one of them.
+     * Then call {@link #addMarkerAndInfoWindow(LatLng, float, String)}
+     * to add a Marker and an InfoWindow at the location.
+     * @param latLng The location.
+     * @param color Color of the Marker. Azure(blue) if current location; red if user click.
+     */
+    private void showAddressAndMarker(LatLng latLng, float color) {
+        String[] address = getStreetName(latLng);
+        streetNameTextView.setText(TextUtils.join(", ", address));
+        mMap.clear();
+        setUpStreets();
+        // active street near latLng
+        addMarkerAndInfoWindow(latLng, color, address[0]);
+    }
+
+    private void showAddressAndMarker(Location location, float color) {
+        showAddressAndMarker(locToLat(location), color);
+    }
+
+    private LatLng locToLat(Location location) {
+        return new LatLng(location.getLatitude(), location.getLongitude());
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -176,8 +249,9 @@ public class MapsActivity extends FragmentActivity
     public void onConnected(Bundle bundle) {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
+            userMoveMap = false;
             centerMap(mLastLocation);
-            showStreetName(mLastLocation);
+            showAddressAndMarker(mLastLocation, BLUE);
         }
 
     }
