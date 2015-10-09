@@ -1,23 +1,18 @@
 package com.example.geng.streetsweeping;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.List;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -28,11 +23,11 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.Locale;
 
-public class MapsActivity extends FragmentActivity {
+public class MapsActivity extends FragmentActivity
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    LocationManager locationManager;
-    LocationListener locationListener;
+    GoogleApiClient mGoogleApiClient;
 
     StreetViewer streetViewer;
     StreetDAO streetDAO;
@@ -40,14 +35,11 @@ public class MapsActivity extends FragmentActivity {
     TextView streetName;
     TextView sweepDate;
 
-    private boolean centerFlag;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("-------------onCreate-------------");
         setContentView(R.layout.main_layout);
-        centerFlag = true;
 
         setUpMapIfNeeded();
 
@@ -56,93 +48,12 @@ public class MapsActivity extends FragmentActivity {
         streetName = (TextView) findViewById(R.id.streetname);
         sweepDate = (TextView) findViewById(R.id.sweepdate);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                if (centerFlag) {
-                    centerMap(location);
-                    showStreetName(location);
-                    centerFlag = false;
-                }
-                System.out.println("Location updated: " + location.getLatitude() + " " + location.getLongitude());
-                //System.out.println("Is the location has bearing? " + location.hasBearing());
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        };
-
-
-
-        showLastKnownLocation();
-
-//        try {
-//            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-//        } catch (SecurityException e) {
-//            // No permission!!
-//            e.printStackTrace();
-//        }
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        System.out.println("-------------onResume-------------");
-
-        Criteria criteria = new Criteria();
-        String bestProvider = locationManager.getBestProvider(criteria, true);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-            return;
-        }
-        //locationManager.requestLocationUpdates(bestProvider, 0, 0, locationListener);
-
+        buildGoogleApiClient(); // Once client connected, will center map and show street name
+        mGoogleApiClient.connect();
         setUpStreets();
 
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        System.out.println("-------------onPause-------------");
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-            return;
-        }
-        locationManager.removeUpdates(locationListener);
-    }
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -181,6 +92,7 @@ public class MapsActivity extends FragmentActivity {
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(new LatLng(37.75, -122.45), 12, 0, 0)));
         mMap.setMyLocationEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -196,42 +108,26 @@ public class MapsActivity extends FragmentActivity {
                 sweepDate.setText(str);
             }
         });
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                if (mLastLocation != null) {
+                    showStreetName(mLastLocation);
+                }
+                return false;
+            }
+        });
     }
-
-
-    private void showLastKnownLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            System.out.println("pppppppppppppppppppppppppppppppppppppp");
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-            return;
-        }
-        Criteria criteria = new Criteria();
-        String bestProvider = locationManager.getBestProvider(criteria, true);
-        Location lastLocation = locationManager.getLastKnownLocation(bestProvider);
-        if (lastLocation != null) {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            centerMap(lastLocation);
-            showStreetName(lastLocation);
-        } else {
-            System.out.println("+++++++++++++++++++++++++++++++++");
-        }
-    }
-
 
     private void centerMap(Location location) {
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
-//        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
         float bearing = 0;
-        //System.out.println("Last location has bearing? " + location.hasBearing());
         if (location.hasBearing()) {
             bearing = location.getBearing();
         }
         CameraPosition cameraPosition = new CameraPosition(new LatLng(location.getLatitude(), location.getLongitude()),
                 16, 0, bearing);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        mMap.getUiSettings().setCompassEnabled(true);
     }
 
     private void showStreetName(double latitude, double longitude) {
@@ -263,4 +159,31 @@ public class MapsActivity extends FragmentActivity {
         streetViewer.addStreets(streets);
     }
 
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        System.out.println("Connection Fails!!");
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            centerMap(mLastLocation);
+            showStreetName(mLastLocation);
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        System.out.println("Connection Suspended!!");
+    }
 }

@@ -10,30 +10,13 @@
         android:layout_weight="6"
         android:id="@+id/map" tools:context=".MapsActivity"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        tools:layout="@layout/activity_maps" />
+        />
     
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="4"
+        android:layout_weight="1"
         android:orientation="vertical" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <Button
-                android:id="@+id/parkbtn"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/parkhere" />
-            <Button
-                android:id="@+id/clearbtn"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/clear" />
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -48,39 +31,10 @@
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp" />
             <TextView
-                android:id="@+id/direction"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp" />
-            <TextView
-                android:id="@+id/sweepdatelable"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/sweepdate"
-                android:textStyle="bold"
-                android:layout_margin="5dp"/>
-            <TextView
                 android:id="@+id/sweepdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Locating..."
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp" />
-            <TextView
-                android:id="@+id/nextsweeplable"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/nextsweep"
-                android:textStyle="bold"
-                android:layout_margin="5dp"/>
-            <TextView
-                android:id="@+id/nextsweep"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="0 Days 0 Hours 0 Minutes"
-                android:gravity="center"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp" />
         </LinearLayout>
