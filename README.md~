@@ -1,11 +1,6 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
 
--- Week 10.4 - 10.10 --
--1. Add basic MVC and database classes
--2. All kml data input into database
--3. Will modify the layout in next week
-
 -- Week 9.27 - 10.3 --
 -1. Enabled the GPS to show current location
 -2. Enabled clicking map to show address in textview

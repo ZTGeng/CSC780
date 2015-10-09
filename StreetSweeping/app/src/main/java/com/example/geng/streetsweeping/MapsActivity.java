@@ -40,10 +40,14 @@ public class MapsActivity extends FragmentActivity {
     TextView streetName;
     TextView sweepDate;
 
+    private boolean centerFlag;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("-------------onCreate-------------");
         setContentView(R.layout.main_layout);
+        centerFlag = true;
 
         setUpMapIfNeeded();
 
@@ -52,14 +56,16 @@ public class MapsActivity extends FragmentActivity {
         streetName = (TextView) findViewById(R.id.streetname);
         sweepDate = (TextView) findViewById(R.id.sweepdate);
 
-        // Move all below to Resume
-//        setUpStreets();
-
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                //System.out.println("Location updated: " + location.getLatitude() + " " + location.getLongitude());
+                if (centerFlag) {
+                    centerMap(location);
+                    showStreetName(location);
+                    centerFlag = false;
+                }
+                System.out.println("Location updated: " + location.getLatitude() + " " + location.getLongitude());
                 //System.out.println("Is the location has bearing? " + location.hasBearing());
             }
 
@@ -79,8 +85,9 @@ public class MapsActivity extends FragmentActivity {
             }
         };
 
-        // No need to call this method in onCreate since it will be called in onResume?
-        //showLastKnownLocation();
+
+
+        showLastKnownLocation();
 
 //        try {
 //            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
@@ -94,9 +101,7 @@ public class MapsActivity extends FragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
-        showLastKnownLocation();
-        setUpStreets();
+        System.out.println("-------------onResume-------------");
 
         Criteria criteria = new Criteria();
         String bestProvider = locationManager.getBestProvider(criteria, true);
@@ -113,14 +118,16 @@ public class MapsActivity extends FragmentActivity {
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
             return;
         }
-        locationManager.requestLocationUpdates(bestProvider, 0, 0, locationListener);
+        //locationManager.requestLocationUpdates(bestProvider, 0, 0, locationListener);
 
+        setUpStreets();
 
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        System.out.println("-------------onPause-------------");
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -172,6 +179,7 @@ public class MapsActivity extends FragmentActivity {
      */
     private void setUpMap() {
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(new LatLng(37.75, -122.45), 12, 0, 0)));
         mMap.setMyLocationEnabled(true);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -190,9 +198,11 @@ public class MapsActivity extends FragmentActivity {
         });
     }
 
+
     private void showLastKnownLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            System.out.println("pppppppppppppppppppppppppppppppppppppp");
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
             return;
@@ -200,9 +210,15 @@ public class MapsActivity extends FragmentActivity {
         Criteria criteria = new Criteria();
         String bestProvider = locationManager.getBestProvider(criteria, true);
         Location lastLocation = locationManager.getLastKnownLocation(bestProvider);
-        centerMap(lastLocation);
-        showStreetName(lastLocation);
+        if (lastLocation != null) {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            centerMap(lastLocation);
+            showStreetName(lastLocation);
+        } else {
+            System.out.println("+++++++++++++++++++++++++++++++++");
+        }
     }
+
 
     private void centerMap(Location location) {
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
@@ -225,8 +241,8 @@ public class MapsActivity extends FragmentActivity {
             //System.out.println(addressList.get(0).getAddressLine(0));
             if (addressList != null && !addressList.isEmpty()) {
                 if (addressList.get(0).getMaxAddressLineIndex() > 0) {
-                    //streetName.setText(addressList.get(0).getAddressLine(0));
-                    streetName.setText(latitude + " " + longitude);
+                    streetName.setText(addressList.get(0).getAddressLine(0));
+                    //streetName.setText(latitude + " " + longitude);
                 }
             }
         } catch (IOException e) {

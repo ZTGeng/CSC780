@@ -43,7 +43,7 @@
                 android:id="@+id/streetname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="1599 Holloway Ave, San Francisco, CA 94130"
+                android:text="Locating..."
                 android:lines="1"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp" />
@@ -51,7 +51,7 @@
                 android:id="@+id/direction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Eastbound"
+                android:text=""
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp" />
             <TextView
@@ -65,7 +65,7 @@
                 android:id="@+id/sweepdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="1st and 3rd Wednesday 8:00am - 10:00am"
+                android:text="Locating..."
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp" />
             <TextView
@@ -79,7 +79,7 @@
                 android:id="@+id/nextsweep"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="3 Days 5 Hours 28 Minutes"
+                android:text="0 Days 0 Hours 0 Minutes"
                 android:gravity="center"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp" />
