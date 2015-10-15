@@ -6,6 +6,7 @@ import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -33,22 +34,24 @@ public class MapsActivity extends FragmentActivity
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     GoogleApiClient mGoogleApiClient;
     Marker mMarker;
-    boolean userMoveMap;
+    //boolean userMoveMap;
 
     StreetViewer streetViewer;
     StreetDAO streetDAO;
 
     TextView streetNameTextView;
     TextView sweepDateTextView;
+    //TextView nextSweepTextView; // At info_window_layout!
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("-------------onCreate-------------");
         setContentView(R.layout.main_layout);
-        userMoveMap = true;
+        //userMoveMap = true;
 
         setUpMapIfNeeded();
+        // mMap is supposed to be not bull since this point.
 
         streetViewer = new StreetViewer(mMap);
         streetDAO = new StreetDAO(new DBHelper(this));
@@ -99,49 +102,61 @@ public class MapsActivity extends FragmentActivity
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(new LatLng(37.75, -122.45), 12, 0, 0)));
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
+                ((TextView) v.findViewById(R.id.nextsweep)).setText(marker.getSnippet());
+                return v;
+            }
+        });
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                showAddressAndMarker(latLng, RED);
+            }
+        });
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                showAddressAndMarker(latLng, RED);
+                if (mMarker != null) {
+                    System.out.println("Trying to hide infoWindow!!");
+                    mMarker.hideInfoWindow();
+                }
             }
         });
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 System.out.println("Camera is Changing!!!!!!!");
-                if (userMoveMap) {
-                    if (mMarker != null) {
-                        System.out.println("Trying to hide infoWindow!!");
-                        mMarker.hideInfoWindow();
-                    }
-                } else {
-                    userMoveMap = true;
-                }
                 if (cameraPosition.zoom > 15) {
                     setUpStreets();
                 }
-                // Test!!
-                String str = cameraPosition.target.latitude + " " + cameraPosition.target.longitude +
-                        " Z: " + cameraPosition.zoom + " b: " + cameraPosition.bearing;
-                sweepDateTextView.setText(str);
             }
         });
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
-                userMoveMap = false;
+                //userMoveMap = false;
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
                     showAddressAndMarker(mLastLocation, BLUE);
+                    centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
+                } else {
+                    streetNameTextView.setText(R.string.invalid_address);
                 }
-                centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
                 return true;
             }
         });
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                userMoveMap = false;
+                //userMoveMap = false;
                 //marker.showInfoWindow(); // If we don't want to center to marker, uncomment this line and return true;
                 return false;
             }
@@ -196,13 +211,13 @@ public class MapsActivity extends FragmentActivity
      * Add a Marker at a location on the map and popup the InfoWindow.
      * @param latLng A location on the map.
      * @param color Color of the Marker.
-     * @param streetName Address of the location to be shown on infoWindow.
+     * @param nextSweep Time to the next Sweeping from now.
      */
-    private void addMarkerAndInfoWindow(LatLng latLng, float color, String streetName) {
+    private void addMarkerAndInfoWindow(LatLng latLng, float color, String nextSweep) {
         mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                 .icon(BitmapDescriptorFactory.defaultMarker(color))
-                .title(streetName).snippet(getString(R.string.invalid_date)));// + System.getProperty("line.separator") + "Set Alert!"));
-
+                .snippet(nextSweep));
+                //.title(nextSweep).snippet(getString(R.string.set_alarm)));// + System.getProperty("line.separator") + "Set Alert!"));
         mMarker.showInfoWindow();
     }
 
@@ -218,10 +233,15 @@ public class MapsActivity extends FragmentActivity
     private void showAddressAndMarker(LatLng latLng, float color) {
         String[] address = getStreetName(latLng);
         streetNameTextView.setText(TextUtils.join(", ", address));
+        String sweepDate = "3rd & 5th Mon";
+        String nextSweep = "Next: 0 day 5 hr 30 min";
+        // query database get sweepDate
+        // calculate nextSweep
+        sweepDateTextView.setText(sweepDate);
         mMap.clear();
         setUpStreets();
         // active street near latLng
-        addMarkerAndInfoWindow(latLng, color, address[0]);
+        addMarkerAndInfoWindow(latLng, color, nextSweep);
     }
 
     private void showAddressAndMarker(Location location, float color) {
@@ -249,7 +269,7 @@ public class MapsActivity extends FragmentActivity
     public void onConnected(Bundle bundle) {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
-            userMoveMap = false;
+            //userMoveMap = false;
             centerMap(mLastLocation);
             showAddressAndMarker(mLastLocation, BLUE);
         }
