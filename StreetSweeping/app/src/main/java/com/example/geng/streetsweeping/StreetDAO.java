@@ -20,14 +20,14 @@ public class StreetDAO{
         this.dbHelper = dbHelper;
     }
 
-    List<Street> getStreetsByLatLng(LatLng point) {
-        List<Street> streets = new ArrayList<Street>();
+    List<Street> getStreetsByStreetName(String name) {
+        List<Street> streets = new ArrayList<>();
 
         return streets;
     }
 
     List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
-        List<Street> streets = new ArrayList<Street>();
+        List<Street> streets = new ArrayList<>();
 
         // for (LatLng latLng : LatLngs) {
         //    if (latLngBounds.contains(latLng) && ) {
