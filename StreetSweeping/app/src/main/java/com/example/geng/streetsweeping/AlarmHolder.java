@@ -7,11 +7,11 @@ import android.content.Context;
 /**
  * Created by geng on 10/15/15.
  */
-public class AlarmDirector {
+public class AlarmHolder {
     AlarmManager alarmManager;
     //PendingIntent
 
-    public AlarmDirector(Context context) {
+    public AlarmHolder(Context context) {
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         //context.getSharedPreferences()
     }

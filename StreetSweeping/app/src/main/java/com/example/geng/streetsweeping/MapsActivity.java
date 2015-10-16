@@ -40,7 +40,7 @@ public class MapsActivity extends FragmentActivity
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     GoogleApiClient mGoogleApiClient;
     Marker mMarker;
-    AlarmDirector alarmDirector;
+    AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
     StreetDAO streetDAO;
@@ -62,7 +62,7 @@ public class MapsActivity extends FragmentActivity
         streetDAO.createDB();
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
-        alarmDirector = new AlarmDirector(this);
+        alarmHolder = new AlarmHolder(this);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
