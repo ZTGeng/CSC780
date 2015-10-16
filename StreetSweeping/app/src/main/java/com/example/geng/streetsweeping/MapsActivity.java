@@ -1,10 +1,16 @@
 package com.example.geng.streetsweeping;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -34,30 +40,29 @@ public class MapsActivity extends FragmentActivity
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     GoogleApiClient mGoogleApiClient;
     Marker mMarker;
-    //boolean userMoveMap;
+    AlarmDirector alarmDirector;
 
     StreetViewer streetViewer;
     StreetDAO streetDAO;
 
     TextView streetNameTextView;
     TextView sweepDateTextView;
-    //TextView nextSweepTextView; // At info_window_layout!
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("-------------onCreate-------------");
         setContentView(R.layout.main_layout);
-        //userMoveMap = true;
 
         setUpMapIfNeeded();
-        // mMap is supposed to be not bull since this point.
+        // mMap is supposed to be not null since this point.
 
         streetViewer = new StreetViewer(mMap);
         streetDAO = new StreetDAO(new DBHelper(this));
         streetDAO.createDB();
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
+        alarmDirector = new AlarmDirector(this);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
@@ -143,7 +148,11 @@ public class MapsActivity extends FragmentActivity
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
-                //userMoveMap = false;
+                if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MapsActivity.this,
+                            new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+                }
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
                     showAddressAndMarker(mLastLocation, BLUE);
@@ -157,7 +166,6 @@ public class MapsActivity extends FragmentActivity
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                //userMoveMap = false;
                 //marker.showInfoWindow(); // If we don't want to center to marker, uncomment this line and return true;
                 return false;
             }
@@ -165,9 +173,36 @@ public class MapsActivity extends FragmentActivity
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                // Set Alert!
+                showAlert();
             }
         });
+    }
+
+    /**
+     * Call {@link #getStreetName(LatLng)} to get address of a location,
+     * then set {@link #streetNameTextView} with the whole address.
+     * Then clear the map and redraw the street lines, and active one of them.
+     * Then call {@link #addMarkerAndInfoWindow(LatLng, float, String)}
+     * to add a Marker and an InfoWindow at the location.
+     * @param latLng The location.
+     * @param color Color of the Marker. Azure(blue) if current location; red if user click.
+     */
+    private void showAddressAndMarker(LatLng latLng, float color) {
+        String[] address = getStreetName(latLng);
+        streetNameTextView.setText(TextUtils.join(", ", address));
+        String sweepDate = "3rd & 5th Mon";
+        String nextSweep = "Next: 0 day 5 hr 30 min";
+        // query database get sweepDate
+        // calculate nextSweep
+        sweepDateTextView.setText(sweepDate);
+        mMap.clear();
+        setUpStreets();
+        // active street near latLng
+        addMarkerAndInfoWindow(latLng, color, nextSweep);
+    }
+
+    private void showAddressAndMarker(Location location, float color) {
+        showAddressAndMarker(locToLat(location), color);
     }
 
     /**
@@ -222,31 +257,49 @@ public class MapsActivity extends FragmentActivity
         mMarker.showInfoWindow();
     }
 
-    /**
-     * Call {@link #getStreetName(LatLng)} to get address of a location,
-     * then set {@link #streetNameTextView} with the whole address.
-     * Then clear the map and redraw the street lines, and active one of them.
-     * Then call {@link #addMarkerAndInfoWindow(LatLng, float, String)}
-     * to add a Marker and an InfoWindow at the location.
-     * @param latLng The location.
-     * @param color Color of the Marker. Azure(blue) if current location; red if user click.
-     */
-    private void showAddressAndMarker(LatLng latLng, float color) {
-        String[] address = getStreetName(latLng);
-        streetNameTextView.setText(TextUtils.join(", ", address));
-        String sweepDate = "3rd & 5th Mon";
-        String nextSweep = "Next: 0 day 5 hr 30 min";
-        // query database get sweepDate
-        // calculate nextSweep
-        sweepDateTextView.setText(sweepDate);
-        mMap.clear();
-        setUpStreets();
-        // active street near latLng
-        addMarkerAndInfoWindow(latLng, color, nextSweep);
+    private void showAlert() {
+
+        /**
+         * An AlertDialog builder is used to build up the details of the modal
+         * dialog such as title, a message and an icon. It is possible to add
+         * one or more buttons to the modal dialog.
+         */
+        AlertDialog.Builder builder = new AlertDialog.Builder(this).setTitle(R.string.set_alarm_title)
+                .setMessage(R.string.set_alarm_description)
+                .setIcon(android.R.drawable.ic_lock_idle_alarm);
+        AlertDialog dlg = builder.create();
+        dlg.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // remove alarm
+                removeAlarm();
+                // set up alarm
+                setAlarm();
+            }
+        });
+
+        dlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        /**
+         * Show the modal dialog. Once the user has clicked on a button, the
+         * dialog is automatically removed.
+         */
+        dlg.show();
     }
 
-    private void showAddressAndMarker(Location location, float color) {
-        showAddressAndMarker(locToLat(location), color);
+    private void setAlarm() {
+        System.out.println("Set up the Alarm!!!!!!!!!");
+    }
+
+    private void removeAlarm() {
+
     }
 
     private LatLng locToLat(Location location) {
@@ -268,6 +321,11 @@ public class MapsActivity extends FragmentActivity
 
     @Override
     public void onConnected(Bundle bundle) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+        }
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             //userMoveMap = false;

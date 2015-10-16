@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">StreetSweeping</string>
     <string name="title_activity_maps">Map</string>
-    <string name="locating">Locating...</string>
-    <string name="invalid_address">Address is not available...</string>
-    <string name="invalid_date">No sweeping date available...</string>
-    <string name="set_alarm">Click to Set Up Alarm...</string>
+    <string name="locating">Locating&#8230;</string>
+    <string name="invalid_address">Address is not available&#8230;</string>
+    <string name="invalid_date">No sweeping date available&#8230;</string>
+    <string name="set_alarm">Click to Set up Alarm&#8230;</string>
+    <string name="set_alarm_title">Set up Alarm</string>
+    <string name="set_alarm_description">Alert half an hour before next sweeping time. (All the old alarms will be removed.)</string>
 </resources>
