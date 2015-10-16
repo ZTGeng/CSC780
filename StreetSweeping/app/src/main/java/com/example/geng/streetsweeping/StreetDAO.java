@@ -17,7 +17,12 @@ public class StreetDAO{
     DBHelper dbHelper;
 
     public StreetDAO(DBHelper dbHelper) {
+
         this.dbHelper = dbHelper;
+    }
+
+    public void createDB() {
+        dbHelper.createDatabase();
     }
 
     List<Street> getStreetsByStreetName(String name) {

@@ -52,6 +52,7 @@ public class MapsActivity extends FragmentActivity
 
         streetViewer = new StreetViewer(mMap);
         streetDAO = new StreetDAO(new DBHelper(this));
+        streetDAO.createDB();
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
 
