@@ -31,6 +31,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import static java.lang.System.out;
+
 public class MapsActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -59,7 +61,6 @@ public class MapsActivity extends FragmentActivity
 
         streetViewer = new StreetViewer(mMap);
         streetDAO = new StreetDAO(new DBHelper(this));
-        streetDAO.createDB();
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
         alarmHolder = new AlarmHolder(this);

@@ -15,7 +15,7 @@ public class Street {
     String bound;
     String sweepingDate; // use for show in TextView
     int weekday; // 0 - 6
-    int weekOfMonth; // 1 - 5
+    int[] weekOfMonth; // 1 - 5
     int timeFrom;
     int timeTo;
     List<LatLng> latLngs;
