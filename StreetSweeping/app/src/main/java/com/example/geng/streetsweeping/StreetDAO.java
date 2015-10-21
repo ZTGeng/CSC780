@@ -22,7 +22,7 @@ public class StreetDAO{
 
     public StreetDAO(DBHelper dbHelper) {
         this.dbHelper = dbHelper;
-        //database = dbHelper.openDataBase();
+        database = dbHelper.openDataBase();
         testDB();
     }
 
