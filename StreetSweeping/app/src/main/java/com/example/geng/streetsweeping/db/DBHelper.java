@@ -1,4 +1,4 @@
-package com.example.geng.streetsweeping;
+package com.example.geng.streetsweeping.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

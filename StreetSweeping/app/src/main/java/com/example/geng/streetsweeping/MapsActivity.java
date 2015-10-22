@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import com.example.geng.streetsweeping.db.DBHelper;
+import com.example.geng.streetsweeping.db.StreetDAO;
+import com.example.geng.streetsweeping.db.StreetDAOInterface;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -30,8 +33,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import static java.lang.System.out;
 
 public class MapsActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -45,7 +46,7 @@ public class MapsActivity extends FragmentActivity
     AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
-    StreetDAO streetDAO;
+    StreetDAOInterface streetDAO;
 
     TextView streetNameTextView;
     TextView sweepDateTextView;

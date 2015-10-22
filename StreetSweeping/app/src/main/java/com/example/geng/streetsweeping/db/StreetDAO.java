@@ -1,10 +1,9 @@
-package com.example.geng.streetsweeping;
+package com.example.geng.streetsweeping.db;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
-import com.google.android.gms.maps.model.LatLng;
+import com.example.geng.streetsweeping.Street;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ import static java.lang.System.*;
 /**
  * Created by geng on 10/6/15.
  */
-public class StreetDAO{
+public class StreetDAO implements StreetDAOInterface {
 
     DBHelper dbHelper;
     SQLiteDatabase database;
@@ -57,7 +56,7 @@ public class StreetDAO{
         return 0;
     }
 
-    List<Street> getStreetsByStreetName(String name) {
+    public List<Street> getStreetsByStreetName(String name) {
         List<Street> streets = new ArrayList<>();
         Cursor resultCursor;
         String table = "StreetSweepData";
@@ -77,7 +76,7 @@ public class StreetDAO{
         return streets;
     }
 
-    List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
+    public List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
         List<Street> streets = new ArrayList<>();
 
         // for (LatLng latLng : LatLngs) {
