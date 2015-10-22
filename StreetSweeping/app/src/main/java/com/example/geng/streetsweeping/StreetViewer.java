@@ -43,6 +43,10 @@ public class StreetViewer {
         addStreet(street, false);
     }
 
+    void activeStreet(Street street) {
+        addStreet(street, true);
+    }
+
     void switchStreet(Street prev, Street post) {
         if (prev != null) {
             addStreet(prev);
@@ -50,7 +54,4 @@ public class StreetViewer {
         addStreet(post, true);
     }
 
-    void activeStreet(Street street) {
-        switchStreet(null, street);
-    }
 }
