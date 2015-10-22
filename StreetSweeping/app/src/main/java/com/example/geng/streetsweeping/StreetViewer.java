@@ -11,6 +11,10 @@ import java.util.List;
  * Created by geng on 10/6/15.
  */
 public class StreetViewer {
+    public static int streetWidth = 20;
+    private final static int RED = 0xffff0000;
+    private final static int GREY = 0xff808080;
+
     GoogleMap mMap;
 
     public StreetViewer(GoogleMap map) {
@@ -30,8 +34,8 @@ public class StreetViewer {
         for (LatLng latLng : street.latLngs) {
             polylineOptions.add(latLng);
         }
-        polylineOptions.width(20); // default: 10
-        polylineOptions.color(active ? 0xffff0000 : 0xff808080); // red : grey
+        polylineOptions.width(streetWidth); // default: 10
+        polylineOptions.color(active ? RED : GREY);
         mMap.addPolyline(polylineOptions);
     }
 
@@ -44,5 +48,9 @@ public class StreetViewer {
             addStreet(prev);
         }
         addStreet(post, true);
+    }
+
+    void activeStreet(Street street) {
+        switchStreet(null, street);
     }
 }

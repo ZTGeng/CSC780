@@ -1,27 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal" android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#F00"
+        android:padding="3dp"
+        android:id="@+id/sign_panel" >
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_margin="5dp">
+        android:background="#FFF"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/NO"
+                android:id="@+id/textView"
+                android:background="#F00"
+                android:textColor="#FFF"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="16sp"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/PARKING"
+                android:id="@+id/textView2"
+                android:textColor="#F00"
+                android:paddingRight="5dp"
+                android:paddingLeft="5dp"
+                android:layout_gravity="center_horizontal"
+                android:textSize="16sp" />
+        </LinearLayout>
+
         <TextView
-            android:id="@+id/nextsweep"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#000" />
+            android:text="@string/sweep_time"
+            android:id="@+id/sweep_time"
+            android:textColor="#F00"
+            android:layout_gravity="center_horizontal"
+            android:textSize="16sp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/set_alarm"
-            android:textColor="#000" />
+            android:text="@string/sweep_date"
+            android:id="@+id/sweep_date"
+            android:textColor="#F00"
+            android:textSize="16sp"
+            android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/STREET_CLEANING"
+            android:id="@+id/textView3"
+            android:textColor="#F00"
+            android:textSize="12sp"
+            android:layout_gravity="center_horizontal" />
     </LinearLayout>
-    <ImageView
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/alarm_panel"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:contentDescription="@string/set_alarm"
-        android:src="@drawable/alarm40"
-        android:textAlignment="center" />
+        android:layout_height="wrap_content"
+        android:text="@string/set_alarm"
+        android:drawableStart="@android:drawable/ic_lock_idle_alarm"
+        android:layout_gravity="center_horizontal"
+        android:textSize="12sp" />
+
 </LinearLayout>
