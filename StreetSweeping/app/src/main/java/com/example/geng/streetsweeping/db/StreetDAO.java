@@ -56,24 +56,33 @@ public class StreetDAO implements StreetDAOInterface {
         return 0;
     }
 
-    public List<Street> getStreetsByStreetName(String name) {
-        List<Street> streets = new ArrayList<>();
+    public Street getStreetsByAddress(String streetName, int houseNumber) {
+        Street street = null;
         Cursor resultCursor;
         String table = "StreetSweepData";
         String[] columns = {"GeneralInfo","Weekday","BlockSide","CNNRightLeft","Corridor","FromHour","ToHour","Week1OfMonth",
                 "Week2OfMonth","Week3OfMonth","Week4OfMonth","Week5OfMonth","LF_FADD","LF_TOADD","RT_TOADD","RT_FADD","ZipCode",
                 "Coordinates"};
         String selection = "Cooridor = ?";
-        String[] selectionArgs = {name};
+        String[] selectionArgs = {streetName};
         String groupBy = null;
         String having = null;
         String orderBy = null;
         if(database.isOpen()) {
             resultCursor = database.query(table, columns, selection, selectionArgs, null, null, null);
             resultCursor.moveToFirst();
-            out.println(resultCursor.getCount());
+            if(!resultCursor.isAfterLast()) {
+                do {
+                    int left_from_index = resultCursor.getColumnIndex("LF_FADD");
+                    int lf_from =Integer.parseInt(resultCursor.getString(left_from_index));
+                    int lf_to = Integer.parseInt(resultCursor.getString(left_from_index+1));
+                    int rt_to = Integer.parseInt(resultCursor.getString(left_from_index+2));
+                    int rt_from = Integer.parseInt(resultCursor.getString(left_from_index+3));
+
+                }while(resultCursor.moveToNext());
+            }
         }
-        return streets;
+        return street;
     }
 
     public List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {

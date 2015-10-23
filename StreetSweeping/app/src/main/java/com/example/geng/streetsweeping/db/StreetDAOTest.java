@@ -14,9 +14,9 @@ public class StreetDAOTest implements StreetDAOInterface {
     @Override
     public List<Street> getStreetsByStreetName(String name) {
         List<Street> streets = new ArrayList<>();
-        Street street = new Street();
+        //Street street = new Street();
         //street.
-        streets.add(street);
+        //streets.add(street);
         return null;
     }
 
