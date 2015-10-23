@@ -7,6 +7,7 @@ import com.example.geng.streetsweeping.Street;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static java.lang.System.*;
@@ -58,6 +59,7 @@ public class StreetDAO implements StreetDAOInterface {
 
     public Street getStreetsByAddress(String streetName, int houseNumber) {
         Street street = null;
+        List<Street> qualifiedStreets = new LinkedList<>();
         Cursor resultCursor;
         String table = "StreetSweepData";
         String[] columns = {"GeneralInfo","Weekday","BlockSide","CNNRightLeft","Corridor","FromHour","ToHour","Week1OfMonth",
@@ -75,10 +77,15 @@ public class StreetDAO implements StreetDAOInterface {
                 do {
                     int left_from_index = resultCursor.getColumnIndex("LF_FADD");
                     int lf_from =Integer.parseInt(resultCursor.getString(left_from_index));
-                    int lf_to = Integer.parseInt(resultCursor.getString(left_from_index+1));
+                    int lf_to = Integer.parseInt(resultCursor.getString(left_from_index + 1));
                     int rt_to = Integer.parseInt(resultCursor.getString(left_from_index+2));
                     int rt_from = Integer.parseInt(resultCursor.getString(left_from_index+3));
+                    int lower_address = Math.min(lf_from, rt_from);
+                    int upper_address = Math.max(lf_to,rt_to);
 
+                    if(houseNumber >= lower_address && houseNumber <= upper_address) {
+                        
+                    }
                 }while(resultCursor.moveToNext());
             }
         }

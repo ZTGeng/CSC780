@@ -12,7 +12,7 @@ import java.util.List;
 public class StreetDAOTest implements StreetDAOInterface {
 
     @Override
-    public List<Street> getStreetsByStreetName(String name) {
+    public Street getStreetsByAddress(String streetName, int houseNumber){
         List<Street> streets = new ArrayList<>();
         //Street street = new Street();
         //street.
