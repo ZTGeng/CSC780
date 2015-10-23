@@ -119,7 +119,7 @@ public class MapsActivity extends FragmentActivity
             @Override
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
-                ((TextView) v.findViewById(R.id.nextsweep)).setText(marker.getSnippet());
+                //((TextView) v.findViewById(R.id.nextsweep)).setText(marker.getSnippet());
                 return v;
             }
         });
