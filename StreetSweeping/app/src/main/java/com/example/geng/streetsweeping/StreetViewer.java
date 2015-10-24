@@ -31,7 +31,7 @@ public class StreetViewer {
 
     void addStreet(Street street, boolean active) {
         PolylineOptions polylineOptions = new PolylineOptions();
-        for (LatLng latLng : street.latLngs) {
+        for (LatLng latLng : street.getlatLngs()) {
             polylineOptions.add(latLng);
         }
         polylineOptions.width(streetWidth); // default: 10
