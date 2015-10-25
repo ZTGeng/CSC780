@@ -1,5 +1,15 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
+#### Week 10.18 - 10.24
+
+1. Redesigned the street sweeping info window
+2. Implemented the new info window, which looks close to the real street sweeping sign
+3. Implemented the getStreetByAddress which queries the database according to the given address and return the refined and accuratestreet sweeping data
+4. Will make the No Parking sign in the info window more close the real one
+5. Will make setAlarm function working
+
+![Parking Sign in Info Window](/images/Screenshot_20151025-161914.png)
+
 
 #### Week 10.11 - 10.17
 
