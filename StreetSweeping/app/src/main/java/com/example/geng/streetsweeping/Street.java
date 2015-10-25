@@ -147,5 +147,18 @@ public class Street {
         return 0;
     }
 
-
+    public String toString() {
+        String result =this.side+ " side of "+ this.name + "; time from " + this.timeFrom +" to " + this.timeTo + " on ";
+        if(!weekOfMonth.isEmpty()) {
+            for (Integer week : weekOfMonth) {
+                result += week.toString() + " ";
+            }
+        }
+        if(!weekday.isEmpty()) {
+            for (String s : weekday) {
+                result += s + " ";
+            }
+        }
+        return result;
+    }
 }

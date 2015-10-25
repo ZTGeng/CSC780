@@ -31,8 +31,8 @@ public class StreetDAO implements StreetDAOInterface {
         out.println("testing db here");
         out.println(this.getClass()+ " gets " +database.getPath());
         out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        Street test = getStreetsByAddress("10th Ave", 602);
-        out.println("Street side :"+test.getSide()+" from time: "+ test.getTimeFrom()+ " to time" + test.getTimeTo());
+        Street test = getStreetsByAddress("10th Ave", 99);
+        out.println(test.toString());
         out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         return;
     }
@@ -70,7 +70,9 @@ public class StreetDAO implements StreetDAOInterface {
                             String side = resultCursor.getString(cnnRightLeftIndex);
                             if(side.equals("L")) {
                                 String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday"));
-                                street.addWeekdays(weekday);
+                                if(street.getWeekday().isEmpty() || !street.getWeekday().contains(weekday)) {
+                                    street.addWeekdays(weekday);
+                                }
                                 if(street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
@@ -80,7 +82,9 @@ public class StreetDAO implements StreetDAOInterface {
                             String side = resultCursor.getString(cnnRightLeftIndex);
                             if(side.equals("R")) {
                                 String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday"));
-                                street.addWeekdays(weekday);
+                                if(street.getWeekday().isEmpty() || !street.getWeekday().contains(weekday)) {
+                                    street.addWeekdays(weekday);
+                                }
                                 if( street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
