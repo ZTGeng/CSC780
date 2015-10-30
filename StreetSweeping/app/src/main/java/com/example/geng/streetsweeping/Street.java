@@ -18,8 +18,6 @@ public class Street {
     private int addressFrom;
     private int addressTo;
     private String blockSide;
-    //private String sweepingDate; // use for show in TextView
-    //private List<String> weekday; // 0 - 6
     private boolean[] weekday;
     private boolean[] weekOfMonth; // 1 - 5
     private String timeFrom;
@@ -33,20 +31,6 @@ public class Street {
         this.weekOfMonth = new boolean[5];
         this.latLngs = new ArrayList<>();
     }
-//    public Street(String name, int addressFrom, int addressTo, String blockSide,String sweepingDate, List<String> weekday,
-//                  List<Integer> weekOfMonth, String timeFrom, String timeTo, List<LatLng> latLngs, String side) {
-//        this.name = name;
-//        this.addressFrom = addressFrom;
-//        this.addressTo = addressTo;
-//        this.blockSide = blockSide;
-//        //this.sweepingDate = sweepingDate;
-//        this.weekday = weekday;
-//        this.weekOfMonth = weekOfMonth;
-//        this.timeFrom = timeFrom;
-//        this.timeTo = timeTo;
-//        this.latLngs = latLngs;
-//        this.side = side;
-//    }
 
     public boolean hasWeekday(int wday) {
         return weekday[wday];
@@ -104,6 +88,18 @@ public class Street {
             }
         }
         return sweepDate.toString().trim();
+    }
+
+    public String getSweepingTime() {
+        StringBuilder sweepTime = new StringBuilder();
+        int timeFromInt = Integer.parseInt(this.timeFrom.substring(0,2));
+        int timeToInt = Integer.parseInt(this.timeTo.substring(0,2));
+        String halfDayFrom = timeFromInt < 12 ? "AM" : "PM";
+        String halfDayTo = timeToInt < 12 ? "AM" : "PM";
+        timeFromInt = (timeFromInt - 1) % 12 + 1;
+        timeToInt = (timeToInt - 1) % 12 + 1;
+        sweepTime.append(timeFromInt).append(halfDayFrom).append(" - ").append(timeToInt).append(halfDayTo);
+        return sweepTime.toString().trim();
     }
 
 

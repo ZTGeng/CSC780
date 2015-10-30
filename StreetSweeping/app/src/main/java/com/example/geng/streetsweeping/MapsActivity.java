@@ -122,6 +122,7 @@ public class MapsActivity extends FragmentActivity
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
                 ((TextView) v.findViewById(R.id.sweep_date)).setText(mStreet.getSweepingDate());
+                ((TextView) v.findViewById(R.id.sweep_time)).setText(mStreet.getSweepingTime());
                 return v;
             }
         });
@@ -203,12 +204,12 @@ public class MapsActivity extends FragmentActivity
 
             // query database get sweepDate
             mStreet = getStreetByAddress(address[0]);
-            System.out.println("======Is mStreet null? " + (mStreet == null));
-            System.out.println("======" + mStreet.toString());
+//            System.out.println("======Is mStreet null? " + (mStreet == null));
+//            System.out.println("======" + mStreet.toString());
             if (mStreet != null) {
                 if (mStreet.getSweepingDate() != null) {
-                    sweepDate = mStreet.getSweepingDate();
-                    System.out.print("======sweepDate is: " + sweepDate);
+                    sweepDate = mStreet.getSweepingTime() + " " + mStreet.getSweepingDate();
+//                    System.out.print("======sweepDate is: " + sweepDate);
                 }
                 // calculate nextSweep
                 //nextSweep =
@@ -234,11 +235,11 @@ public class MapsActivity extends FragmentActivity
         CameraPosition cameraPosition = new CameraPosition(locToLat(location), 16, 0, 0);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
-
-    private void setUpStreets() {
-        List<Street> streets = streetDAO.getStreetsOnScreen(mMap.getProjection().getVisibleRegion().latLngBounds);
-        streetViewer.addStreets(streets);
-    }
+//
+//    private void setUpStreets() {
+//        List<Street> streets = streetDAO.getStreetsOnScreen(mMap.getProjection().getVisibleRegion().latLngBounds);
+//        streetViewer.addStreets(streets);
+//    }
 
     /**
      * Get address information of a location by Geocoder service.
@@ -269,10 +270,10 @@ public class MapsActivity extends FragmentActivity
      * @return Street object
      */
     private Street getStreetByAddress(String numberAndName) {
-        System.out.println("===try to get street object===");
+//        System.out.println("===try to get street object===");
         String[] strArray = numberAndName.trim().split(" ", 2);
         if (strArray.length < 2) return null;
-        System.out.println("===address is: " + strArray[0] + " " + strArray[1]);
+//        System.out.println("===address is: " + strArray[0] + " " + strArray[1]);
         String[] numStrings = strArray[0].split("-");
         try {
             int num;
@@ -284,12 +285,12 @@ public class MapsActivity extends FragmentActivity
                 num = (num0 + num1) / 2;
                 if (num0 % 2 != num % 2) num--;
             } else {
-                System.out.println("===got null street object!!!!!!===");
+//                System.out.println("===got null street object!!!!!!===");
                 return null;
             }
             return streetDAO.getStreetsByAddress(strArray[1], num);
         } catch (NumberFormatException e) {
-            System.out.println("===error happens!!!!!!===");
+//            System.out.println("===error happens!!!!!!===");
             return null;
         }
     }
