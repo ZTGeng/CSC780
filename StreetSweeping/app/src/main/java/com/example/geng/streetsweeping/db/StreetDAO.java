@@ -52,6 +52,9 @@ public class StreetDAO implements StreetDAOInterface {
     }
 
     public Street getStreetsByAddress(String streetName, int houseNumber) {
+        //null input checking
+        if(streetName == null || streetName.isEmpty()) return null;
+
         Street street = null;
         Cursor resultCursor;
         String table = "StreetSweepData";
