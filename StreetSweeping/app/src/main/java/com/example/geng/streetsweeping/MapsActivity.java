@@ -62,8 +62,7 @@ public class MapsActivity extends FragmentActivity
         // mMap is supposed to be not null since this point.
 
         streetViewer = new StreetViewer(mMap);
-        DBHelper dbHelper = new DBHelper(this);
-        streetDAO = new StreetDAO(dbHelper);
+        streetDAO = new StreetDAO(new DBHelper(this));
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
         alarmHolder = new AlarmHolder(this);
@@ -121,8 +120,18 @@ public class MapsActivity extends FragmentActivity
             @Override
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
-                ((TextView) v.findViewById(R.id.sweep_date)).setText(mStreet.getSweepingDate());
-                ((TextView) v.findViewById(R.id.sweep_time)).setText(mStreet.getSweepingTime());
+                String sweepDate = mStreet.getSweepingDate();
+                if (sweepDate.length() == 0)
+                    sweepDate = getString(R.string.invalid_date);
+                ((TextView) v.findViewById(R.id.sweep_date)).setText(sweepDate);
+                String sweepTime = mStreet.getSweepingTime();
+                if (sweepTime.length() == 0)
+                    sweepTime = getString(R.string.invalid_time);
+                ((TextView) v.findViewById(R.id.sweep_time)).setText(sweepTime);
+                String nextTime = mStreet.getTimeTillNext();
+                if (nextTime.length() == 0)
+                    nextTime = getString(R.string.invalid_next_time);
+                ((TextView) v.findViewById(R.id.nextsweep)).setText(nextTime);
                 return v;
             }
         });
@@ -136,7 +145,6 @@ public class MapsActivity extends FragmentActivity
             @Override
             public void onMapClick(LatLng latLng) {
                 if (mMarker != null) {
-                    System.out.println("Trying to hide infoWindow!!");
                     mMarker.hideInfoWindow();
                 }
             }
@@ -187,7 +195,7 @@ public class MapsActivity extends FragmentActivity
      * Call {@link #getStreetName(LatLng)} to get address of a location,
      * then set {@link #streetNameTextView} with the whole address.
      * Then clear the map and redraw the street lines, and active one of them.
-     * Then call {@link #addMarkerAndInfoWindow(LatLng, float, String)}
+     * Then call {@link #addMarkerAndInfoWindow(LatLng, float)}
      * to add a Marker and an InfoWindow at the location.
      * @param latLng The location.
      * @param color Color of the Marker. Azure(blue) if current location; red if user click.
@@ -195,7 +203,6 @@ public class MapsActivity extends FragmentActivity
     private void showAddressAndMarker(LatLng latLng, float color) {
         String streetName = getString(R.string.address_unavailable);
         String sweepDate = getString(R.string.date_unavailable);
-        String nextSweep = getString(R.string.invalid_time);
 
         String[] address = getStreetName(latLng);
         mMap.clear();
@@ -204,23 +211,17 @@ public class MapsActivity extends FragmentActivity
 
             // query database get sweepDate
             mStreet = getStreetByAddress(address[0]);
-//            System.out.println("======Is mStreet null? " + (mStreet == null));
-//            System.out.println("======" + mStreet.toString());
             if (mStreet != null) {
                 if (mStreet.getSweepingDate() != null) {
                     sweepDate = mStreet.getSweepingTime() + " " + mStreet.getSweepingDate();
-//                    System.out.print("======sweepDate is: " + sweepDate);
                 }
-                // calculate nextSweep
-                //nextSweep =
-
                 // draw street
                 streetViewer.addStreet(mStreet, true);
             }
         }
         streetNameTextView.setText(streetName);
         sweepDateTextView.setText(sweepDate);
-        addMarkerAndInfoWindow(latLng, color, nextSweep);
+        addMarkerAndInfoWindow(latLng, color);
     }
 
     private void showAddressAndMarker(Location location, float color) {
@@ -235,11 +236,6 @@ public class MapsActivity extends FragmentActivity
         CameraPosition cameraPosition = new CameraPosition(locToLat(location), 16, 0, 0);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
-//
-//    private void setUpStreets() {
-//        List<Street> streets = streetDAO.getStreetsOnScreen(mMap.getProjection().getVisibleRegion().latLngBounds);
-//        streetViewer.addStreets(streets);
-//    }
 
     /**
      * Get address information of a location by Geocoder service.
@@ -270,10 +266,8 @@ public class MapsActivity extends FragmentActivity
      * @return Street object
      */
     private Street getStreetByAddress(String numberAndName) {
-//        System.out.println("===try to get street object===");
         String[] strArray = numberAndName.trim().split(" ", 2);
         if (strArray.length < 2) return null;
-//        System.out.println("===address is: " + strArray[0] + " " + strArray[1]);
         String[] numStrings = strArray[0].split("-");
         try {
             int num;
@@ -285,12 +279,10 @@ public class MapsActivity extends FragmentActivity
                 num = (num0 + num1) / 2;
                 if (num0 % 2 != num % 2) num--;
             } else {
-//                System.out.println("===got null street object!!!!!!===");
                 return null;
             }
             return streetDAO.getStreetsByAddress(strArray[1], num);
         } catch (NumberFormatException e) {
-//            System.out.println("===error happens!!!!!!===");
             return null;
         }
     }
@@ -299,13 +291,10 @@ public class MapsActivity extends FragmentActivity
      * Add a Marker at a location on the map and popup the InfoWindow.
      * @param latLng A location on the map.
      * @param color Color of the Marker.
-     * @param nextSweep Time to the next Sweeping from now.
      */
-    private void addMarkerAndInfoWindow(LatLng latLng, float color, String nextSweep) {
+    private void addMarkerAndInfoWindow(LatLng latLng, float color) {
         mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
-                .icon(BitmapDescriptorFactory.defaultMarker(color))
-                .snippet(nextSweep));
-                //.title(nextSweep).snippet(getString(R.string.set_alarm)));// + System.getProperty("line.separator") + "Set Alert!"));
+                .icon(BitmapDescriptorFactory.defaultMarker(color)));
         mMarker.showInfoWindow();
     }
 

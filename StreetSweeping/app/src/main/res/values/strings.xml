@@ -10,9 +10,12 @@
     <!-- Info window -->
     <string name="NO">NO</string>
     <string name="PARKING">PARKING</string>
+    <string name="AM">AM</string>
+    <string name="PM">PM</string>
     <string name="STREET_CLEANING">STREET CLEANING</string>
+    <string name="invalid_date">Invalid Date</string>
     <string name="invalid_time">Invalid Time</string>
-    <string name="invalid_date_info_window">Invalid Date</string>
+    <string name="invalid_next_time">0 days 0 hrs 0 mins</string>
     <string name="NEXT">NEXT:</string>
     <string name="set_alarm">Click to Set Alarm</string>
 

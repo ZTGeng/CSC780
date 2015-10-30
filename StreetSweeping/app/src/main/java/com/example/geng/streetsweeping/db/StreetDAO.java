@@ -117,7 +117,7 @@ public class StreetDAO implements StreetDAOInterface {
             if (weekOfMonth.equals("Yes")) street.addWeekOfMonth(i);
         }
         String coordinates = resultCursor.getString(resultCursor.getColumnIndex("Coordinates"));
-        for (String s : coordinates.split("\\s+")) {
+        for (String s : coordinates.split(" ")) {
             String[] sInside = s.split(",");
             LatLng latLng = new LatLng(Double.parseDouble(sInside[0]), Double.parseDouble(sInside[1]));
             street.addLatLngs(latLng);

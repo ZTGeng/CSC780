@@ -1,5 +1,7 @@
 package com.example.geng.streetsweeping;
 
+import android.content.Context;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ public class Street {
     private static final String[] WEEKDAYS = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     private static final String[] WEEKDAYSALL = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     private static final String[] WEEKS = {"1st", "2nd", "3rd", "4th", "5th"};
+    private static final String AM = "AM";
+    private static final String PM = "PM";
 
     private String name;
     private int addressFrom;
@@ -40,24 +44,12 @@ public class Street {
         weekday[wday] = true;
     }
 
+    public boolean hasWeekOfMonth(int wOfMonth) {
+        return weekOfMonth[wOfMonth];
+    }
+
     public void addWeekOfMonth (int week) {
         weekOfMonth[week] = true;
-    }
-
-    public String getStreetName () {
-        return this.name;
-    }
-
-    public int getAddressFrom () {
-        return this.addressFrom;
-    }
-
-    public int getAddressTo () {
-        return this.addressTo;
-    }
-
-    public String getBlockSide () {
-        return this.blockSide;
     }
 
     public String getSweepingDate () {
@@ -92,14 +84,35 @@ public class Street {
 
     public String getSweepingTime() {
         StringBuilder sweepTime = new StringBuilder();
+        if (this.timeFrom == null || this.timeTo == null) return sweepTime.toString();
         int timeFromInt = Integer.parseInt(this.timeFrom.substring(0,2));
         int timeToInt = Integer.parseInt(this.timeTo.substring(0,2));
-        String halfDayFrom = timeFromInt < 12 ? "AM" : "PM";
-        String halfDayTo = timeToInt < 12 ? "AM" : "PM";
+        String halfDayFrom = timeFromInt < 12 ? AM : PM;
+        String halfDayTo = timeFromInt < 12 ? AM : PM;
         timeFromInt = (timeFromInt - 1) % 12 + 1;
         timeToInt = (timeToInt - 1) % 12 + 1;
         sweepTime.append(timeFromInt).append(halfDayFrom).append(" - ").append(timeToInt).append(halfDayTo);
         return sweepTime.toString().trim();
+    }
+
+    public String getTimeTillNext() {
+        return "";
+    }
+
+    public String getStreetName () {
+        return this.name;
+    }
+
+    public int getAddressFrom () {
+        return this.addressFrom;
+    }
+
+    public int getAddressTo () {
+        return this.addressTo;
+    }
+
+    public String getBlockSide () {
+        return this.blockSide;
     }
 
 
