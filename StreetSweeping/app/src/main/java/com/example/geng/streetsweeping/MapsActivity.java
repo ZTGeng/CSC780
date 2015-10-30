@@ -43,6 +43,7 @@ public class MapsActivity extends FragmentActivity
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     GoogleApiClient mGoogleApiClient;
     Marker mMarker;
+    Street mStreet;
     AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
@@ -68,7 +69,7 @@ public class MapsActivity extends FragmentActivity
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
-        setUpStreets();
+        //setUpStreets();
 
     }
 
@@ -138,15 +139,15 @@ public class MapsActivity extends FragmentActivity
                 }
             }
         });
-        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                System.out.println("Camera is Changing!!!!!!!");
-                if (cameraPosition.zoom > 15) {
-                    setUpStreets();
-                }
-            }
-        });
+//        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+//            @Override
+//            public void onCameraChange(CameraPosition cameraPosition) {
+//                System.out.println("Camera is Changing!!!!!!!");
+//                if (cameraPosition.zoom > 15) {
+//                    setUpStreets();
+//                }
+//            }
+//        });
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
@@ -160,7 +161,7 @@ public class MapsActivity extends FragmentActivity
                     showAddressAndMarker(mLastLocation, BLUE);
                     centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
                 } else {
-                    streetNameTextView.setText(R.string.invalid_address);
+                    streetNameTextView.setText(R.string.address_unavailable);
                 }
                 return true;
             }
@@ -190,16 +191,33 @@ public class MapsActivity extends FragmentActivity
      * @param color Color of the Marker. Azure(blue) if current location; red if user click.
      */
     private void showAddressAndMarker(LatLng latLng, float color) {
+        String streetName = getString(R.string.address_unavailable);
+        String sweepDate = getString(R.string.date_unavailable);
+        String nextSweep = getString(R.string.invalid_time);
+
         String[] address = getStreetName(latLng);
-        streetNameTextView.setText(TextUtils.join(", ", address));
-        String sweepDate = "3rd & 5th Mon";
-        String nextSweep = "Next: 0 day 5 hr 30 min";
-        // query database get sweepDate
-        // calculate nextSweep
-        sweepDateTextView.setText(sweepDate);
         mMap.clear();
-        setUpStreets();
-        // active street near latLng
+        if (address.length != 0) {
+            streetName = TextUtils.join(", ", address);
+
+            // query database get sweepDate
+            mStreet = getStreetByAddress(address[0]);
+            System.out.println("======Is mStreet null? " + (mStreet == null));
+            System.out.println("======" + mStreet.toString());
+            if (mStreet != null) {
+                if (mStreet.getSweepingDate() != null) {
+                    sweepDate = mStreet.getSweepingDate();
+                    System.out.print("======sweepDate is: " + sweepDate);
+                }
+                // calculate nextSweep
+                //nextSweep =
+
+                // draw street
+                streetViewer.addStreet(mStreet, true);
+            }
+        }
+        streetNameTextView.setText(streetName);
+        sweepDateTextView.setText(sweepDate);
         addMarkerAndInfoWindow(latLng, color, nextSweep);
     }
 
@@ -241,8 +259,38 @@ public class MapsActivity extends FragmentActivity
         } catch (IOException e) {
             e.printStackTrace();
         }
-        address = new String[] { getString(R.string.invalid_address) };
-        return address;
+        return new String[0];
+    }
+
+    /**
+     * Get Street object from database.
+     * @param numberAndName Example: "221 Baker St", "100-130 19th Ave"
+     * @return Street object
+     */
+    private Street getStreetByAddress(String numberAndName) {
+        System.out.println("===try to get street object===");
+        String[] strArray = numberAndName.trim().split(" ", 2);
+        if (strArray.length < 2) return null;
+        System.out.println("===address is: " + strArray[0] + " " + strArray[1]);
+        String[] numStrings = strArray[0].split("-");
+        try {
+            int num;
+            if (numStrings.length == 1) {
+                num = Integer.parseInt(numStrings[0]);
+            } else if (numStrings.length == 2) {
+                int num0 = Integer.parseInt(numStrings[0]);
+                int num1 = Integer.parseInt(numStrings[1]);
+                num = (num0 + num1) / 2;
+                if (num0 % 2 != num % 2) num--;
+            } else {
+                System.out.println("===got null street object!!!!!!===");
+                return null;
+            }
+            return streetDAO.getStreetsByAddress(strArray[1], num);
+        } catch (NumberFormatException e) {
+            System.out.println("===error happens!!!!!!===");
+            return null;
+        }
     }
 
     /**

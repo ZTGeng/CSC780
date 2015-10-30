@@ -14,7 +14,7 @@ public class Street {
     private int addressFrom;
     private int addressTo;
     private String blockSide;
-    private String sweepingDate; // use for show in TextView
+    //private String sweepingDate; // use for show in TextView
     private List<String> weekday; // 0 - 6
     private List<Integer> weekOfMonth; // 1 - 5
     private String timeFrom;
@@ -24,9 +24,9 @@ public class Street {
 
     public Street(String name) {
         this.name = name;
-        weekday = new ArrayList<>();
-        weekOfMonth = new ArrayList<>();
-        latLngs = new ArrayList<>();
+        this.weekday = new ArrayList<>();
+        this.weekOfMonth = new ArrayList<>();
+        this.latLngs = new ArrayList<>();
     }
     public Street(String name, int addressFrom, int addressTo, String blockSide,String sweepingDate, List<String> weekday,
                   List<Integer> weekOfMonth, String timeFrom, String timeTo, List<LatLng> latLngs, String side) {
@@ -34,7 +34,7 @@ public class Street {
         this.addressFrom = addressFrom;
         this.addressTo = addressTo;
         this.blockSide = blockSide;
-        this.sweepingDate = sweepingDate;
+        //this.sweepingDate = sweepingDate;
         this.weekday = weekday;
         this.weekOfMonth = weekOfMonth;
         this.timeFrom = timeFrom;
@@ -60,7 +60,18 @@ public class Street {
     }
 
     public String getSweepingDate () {
-        return this.sweepingDate;
+        String sweepDate = "";
+        if(!weekOfMonth.isEmpty()) {
+            for (Integer week : weekOfMonth) {
+                sweepDate += week.toString() + " ";
+            }
+        }
+        if(!weekday.isEmpty()) {
+            for (String s : weekday) {
+                sweepDate += s + " ";
+            }
+        }
+        return sweepDate;
     }
 
     public List<String> getWeekday () {
@@ -101,10 +112,6 @@ public class Street {
 
     public void setBlockSide (String blockSide) {
         this.blockSide = blockSide;
-    }
-
-    public void setSweepingDate (String sweepingDate) {
-        this.sweepingDate = sweepingDate;
     }
 
     public void setWeekday (List<String> weekday) {
