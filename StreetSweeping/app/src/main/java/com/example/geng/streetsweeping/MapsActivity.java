@@ -62,7 +62,8 @@ public class MapsActivity extends FragmentActivity
         // mMap is supposed to be not null since this point.
 
         streetViewer = new StreetViewer(mMap);
-        streetDAO = new StreetDAO(new DBHelper(this));
+        DBHelper dbHelper = new DBHelper(this);
+        streetDAO = new StreetDAO(dbHelper);
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
         alarmHolder = new AlarmHolder(this);
@@ -120,7 +121,7 @@ public class MapsActivity extends FragmentActivity
             @Override
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
-                //((TextView) v.findViewById(R.id.nextsweep)).setText(marker.getSnippet());
+                ((TextView) v.findViewById(R.id.sweep_date)).setText(mStreet.getSweepingDate());
                 return v;
             }
         });

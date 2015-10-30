@@ -10,13 +10,18 @@ import java.util.List;
  */
 public class Street {
 
+    private static final String[] WEEKDAYS = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    private static final String[] WEEKDAYSALL = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    private static final String[] WEEKS = {"1st", "2nd", "3rd", "4th", "5th"};
+
     private String name;
     private int addressFrom;
     private int addressTo;
     private String blockSide;
     //private String sweepingDate; // use for show in TextView
-    private List<String> weekday; // 0 - 6
-    private List<Integer> weekOfMonth; // 1 - 5
+    //private List<String> weekday; // 0 - 6
+    private boolean[] weekday;
+    private boolean[] weekOfMonth; // 1 - 5
     private String timeFrom;
     private String timeTo;
     private List<LatLng> latLngs;
@@ -24,23 +29,35 @@ public class Street {
 
     public Street(String name) {
         this.name = name;
-        this.weekday = new ArrayList<>();
-        this.weekOfMonth = new ArrayList<>();
+        this.weekday = new boolean[7];
+        this.weekOfMonth = new boolean[5];
         this.latLngs = new ArrayList<>();
     }
-    public Street(String name, int addressFrom, int addressTo, String blockSide,String sweepingDate, List<String> weekday,
-                  List<Integer> weekOfMonth, String timeFrom, String timeTo, List<LatLng> latLngs, String side) {
-        this.name = name;
-        this.addressFrom = addressFrom;
-        this.addressTo = addressTo;
-        this.blockSide = blockSide;
-        //this.sweepingDate = sweepingDate;
-        this.weekday = weekday;
-        this.weekOfMonth = weekOfMonth;
-        this.timeFrom = timeFrom;
-        this.timeTo = timeTo;
-        this.latLngs = latLngs;
-        this.side = side;
+//    public Street(String name, int addressFrom, int addressTo, String blockSide,String sweepingDate, List<String> weekday,
+//                  List<Integer> weekOfMonth, String timeFrom, String timeTo, List<LatLng> latLngs, String side) {
+//        this.name = name;
+//        this.addressFrom = addressFrom;
+//        this.addressTo = addressTo;
+//        this.blockSide = blockSide;
+//        //this.sweepingDate = sweepingDate;
+//        this.weekday = weekday;
+//        this.weekOfMonth = weekOfMonth;
+//        this.timeFrom = timeFrom;
+//        this.timeTo = timeTo;
+//        this.latLngs = latLngs;
+//        this.side = side;
+//    }
+
+    public boolean hasWeekday(int wday) {
+        return weekday[wday];
+    }
+
+    public void addWeekday(int wday) {
+        weekday[wday] = true;
+    }
+
+    public void addWeekOfMonth (int week) {
+        weekOfMonth[week] = true;
     }
 
     public String getStreetName () {
@@ -60,27 +77,35 @@ public class Street {
     }
 
     public String getSweepingDate () {
-        String sweepDate = "";
-        if(!weekOfMonth.isEmpty()) {
-            for (Integer week : weekOfMonth) {
-                sweepDate += week.toString() + " ";
+        StringBuilder sweepDate = new StringBuilder();
+        boolean flag = true;
+        for (int i = 0; i < weekOfMonth.length; i++) {
+            if (!weekOfMonth[i]) {
+                flag = false;
+                break;
             }
         }
-        if(!weekday.isEmpty()) {
-            for (String s : weekday) {
-                sweepDate += s + " ";
+        if (flag) {
+            for (int i = 0; i < weekday.length; i++) {
+                if (weekday[i]) {
+                    sweepDate.append(WEEKDAYSALL[i]).append(" ");
+                }
+            }
+        } else {
+            for (int i = 0; i < weekOfMonth.length; i++) {
+                if (weekOfMonth[i]) {
+                    sweepDate.append(WEEKS[i]).append(" ");
+                }
+            }
+            for (int i = 0; i < weekday.length; i++) {
+                if (weekday[i]) {
+                    sweepDate.append(WEEKDAYS[i]).append(" ");
+                }
             }
         }
-        return sweepDate;
+        return sweepDate.toString().trim();
     }
 
-    public List<String> getWeekday () {
-        return this.weekday;
-    }
-
-    public List<Integer> getWeekOfMonth () {
-        return this.weekOfMonth;
-    }
 
     public String getTimeFrom () {
         return this.timeFrom;
@@ -114,13 +139,6 @@ public class Street {
         this.blockSide = blockSide;
     }
 
-    public void setWeekday (List<String> weekday) {
-        this.weekday = weekday;
-    }
-
-    public void setWeekOfMonth (List<Integer> weekOfMonth) {
-        this.weekOfMonth = weekOfMonth;
-    }
 
     public void setTimeFrom (String timeFrom) {
         this.timeFrom = timeFrom;
@@ -138,13 +156,6 @@ public class Street {
         this.side = side;
     }
 
-    public void addWeekdays (String weekday) {
-        this.weekday.add(weekday);
-    }
-
-    public void addWeekOfMonth (int week) {
-        this.weekOfMonth.add(week);
-    }
 
     public void addLatLngs(LatLng latLng) {
         this.latLngs.add(latLng);
@@ -156,16 +167,16 @@ public class Street {
 
     public String toString() {
         String result =this.side+ " side of "+ this.name + "; time from " + this.timeFrom +" to " + this.timeTo + " on ";
-        if(!weekOfMonth.isEmpty()) {
-            for (Integer week : weekOfMonth) {
-                result += week.toString() + " ";
-            }
-        }
-        if(!weekday.isEmpty()) {
-            for (String s : weekday) {
-                result += s + " ";
-            }
-        }
+//        if(!weekOfMonth.isEmpty()) {
+//            for (Integer week : weekOfMonth) {
+//                result += week.toString() + " ";
+//            }
+//        }
+//        if(!weekday.isEmpty()) {
+//            for (String s : weekday) {
+//                result += s + " ";
+//            }
+//        }
         return result;
     }
 }

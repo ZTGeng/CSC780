@@ -8,6 +8,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,6 +18,19 @@ import static java.lang.System.*;
  * Created by geng on 10/6/15.
  */
 public class StreetDAO implements StreetDAOInterface {
+
+    private static HashMap<String, Integer> WEEKDAYS = new HashMap<>();
+    private static String[] WEEKOFMONTH = {"Week1OfMonth", "Week2OfMonth", "Week3OfMonth", "Week4OfMonth", "Week5OfMonth"};
+
+    static {
+        WEEKDAYS.put("SUN", 0);
+        WEEKDAYS.put("MON", 1);
+        WEEKDAYS.put("TUES", 2);
+        WEEKDAYS.put("WED", 3);
+        WEEKDAYS.put("THU", 4);
+        WEEKDAYS.put("FRI", 5);
+        WEEKDAYS.put("SAT", 6);
+    }
 
     DBHelper dbHelper;
     SQLiteDatabase database;
@@ -66,32 +80,25 @@ public class StreetDAO implements StreetDAOInterface {
                     int upper_address = Math.max(lf_to,rt_to);
 
                     if(houseNumber >= lower_address && houseNumber <= upper_address) {
+                        String side = resultCursor.getString(cnnRightLeftIndex);
+                        String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday"));
                         if(houseNumber % 2 == lf_from % 2) {
-                            String side = resultCursor.getString(cnnRightLeftIndex);
                             if(side.equals("L")) {
-                                String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday"));
-                                if(street.getWeekday().isEmpty() || !street.getWeekday().contains(weekday)) {
-                                    street.addWeekdays(weekday);
-                                }
+                                street.addWeekday(WEEKDAYS.get(weekday.toUpperCase()));
                                 if(street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
                             }
-                        }
-                        else {
-                            String side = resultCursor.getString(cnnRightLeftIndex);
+                        } else {
                             if(side.equals("R")) {
-                                String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday"));
-                                if(street.getWeekday().isEmpty() || !street.getWeekday().contains(weekday)) {
-                                    street.addWeekdays(weekday);
-                                }
+                                street.addWeekday(WEEKDAYS.get(weekday.toUpperCase()));
                                 if( street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
                             }
                         }
                     }
-                }while(resultCursor.moveToNext());
+                } while (resultCursor.moveToNext());
             }
         }
         return street;
@@ -102,16 +109,10 @@ public class StreetDAO implements StreetDAOInterface {
         street.setSide(side);
         street.setTimeFrom(resultCursor.getString(resultCursor.getColumnIndex("FromHour")));
         street.setTimeTo(resultCursor.getString(resultCursor.getColumnIndex("ToHour")));
-        String week1st = resultCursor.getString(resultCursor.getColumnIndex("Week1OfMonth"));
-        if (week1st.equals("Yes")) street.addWeekOfMonth(1);
-        String week2nd = resultCursor.getString(resultCursor.getColumnIndex("Week2OfMonth"));
-        if (week2nd.equals("Yes")) street.addWeekOfMonth(2);
-        String week3rd = resultCursor.getString(resultCursor.getColumnIndex("Week3OfMonth"));
-        if (week3rd.equals("Yes")) street.addWeekOfMonth(3);
-        String week4th = resultCursor.getString(resultCursor.getColumnIndex("Week4OfMonth"));
-        if (week4th.equals("Yes")) street.addWeekOfMonth(4);
-        String week5th = resultCursor.getString(resultCursor.getColumnIndex("Week5OfMonth"));
-        if (week5th.equals("Yes")) street.addWeekOfMonth(5);
+        for (int i = 0; i < WEEKOFMONTH.length; i++) {
+            String weekOfMonth = resultCursor.getString(resultCursor.getColumnIndex(WEEKOFMONTH[i]));
+            if (weekOfMonth.equals("Yes")) street.addWeekOfMonth(i);
+        }
         String coordinates = resultCursor.getString(resultCursor.getColumnIndex("Coordinates"));
         for (String s : coordinates.split("\\s+")) {
             String[] sInside = s.split(",");
