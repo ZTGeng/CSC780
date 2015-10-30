@@ -24,7 +24,7 @@ public class StreetDAO implements StreetDAOInterface {
     public StreetDAO(DBHelper dbHelper) {
         this.dbHelper = dbHelper;
         database = dbHelper.openDataBase();
-        testDB();
+        //testDB();
     }
 
     public void testDB() {

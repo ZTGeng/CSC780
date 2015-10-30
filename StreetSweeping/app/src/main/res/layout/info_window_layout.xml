@@ -7,80 +7,108 @@
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#F00"
+        android:background="@android:color/holo_red_dark"
         android:padding="3dp"
         android:id="@+id/sign_panel" >
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#FFF"
-        android:orientation="vertical" >
-
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/NO"
+                    android:id="@+id/textView"
+                    android:background="@android:color/holo_red_dark"
+                    android:textColor="@android:color/white"
+                    android:paddingLeft="5dp"
+                    android:paddingRight="5dp"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_horizontal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/PARKING"
+                    android:id="@+id/textView2"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:paddingRight="5dp"
+                    android:paddingLeft="5dp"
+                    android:layout_gravity="center_horizontal"
+                    android:textSize="16sp" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/NO"
-                android:id="@+id/textView"
-                android:background="#F00"
-                android:textColor="#FFF"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"
+                android:text="@string/invalid_time"
+                android:id="@+id/sweep_time"
+                android:textColor="@android:color/holo_red_dark"
+                android:layout_gravity="center_horizontal"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/invalid_date_info_window"
+                android:id="@+id/sweep_date"
+                android:textColor="@android:color/holo_red_dark"
                 android:textSize="16sp"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/PARKING"
-                android:id="@+id/textView2"
-                android:textColor="#F00"
-                android:paddingRight="5dp"
-                android:paddingLeft="5dp"
-                android:layout_gravity="center_horizontal"
-                android:textSize="16sp" />
+                android:text="@string/STREET_CLEANING"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="12sp"
+                android:layout_gravity="center_horizontal" />
         </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sweep_time"
-            android:id="@+id/sweep_time"
-            android:textColor="#F00"
-            android:layout_gravity="center_horizontal"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sweep_date"
-            android:id="@+id/sweep_date"
-            android:textColor="#F00"
-            android:textSize="16sp"
-            android:layout_gravity="center_horizontal" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/STREET_CLEANING"
-            android:id="@+id/textView3"
-            android:textColor="#F00"
-            android:textSize="12sp"
-            android:layout_gravity="center_horizontal" />
-    </LinearLayout>
     </FrameLayout>
 
-    <TextView
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/alarm_panel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/set_alarm"
-        android:drawableStart="@android:drawable/ic_lock_idle_alarm"
-        android:layout_gravity="center_horizontal"
-        android:textSize="12sp" />
+        android:background="@android:color/white"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp" >
+
+        <TextView
+            android:id="@+id/nextlabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/NEXT"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/nextsweep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/invalid_time"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/click_tip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/set_alarm"
+            android:drawableStart="@drawable/alarm15"
+            android:layout_gravity="center_horizontal"
+            android:gravity="bottom"
+            android:textSize="12sp"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
 
 </LinearLayout>
