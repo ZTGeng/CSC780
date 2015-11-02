@@ -1,5 +1,13 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
+#### Week 10.25 - 10.31
+
+1. Fixed the null pointer bug
+2. Successfully connect the front end to the back end
+3. The No Parking sign now shows the accurate street cleaning data
+4. Will finish the alarm setting part
+5. Will work on the new feature: push notifications
+
 #### Week 10.18 - 10.24
 
 1. Redesigned the street sweeping info window
