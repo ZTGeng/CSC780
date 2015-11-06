@@ -1,5 +1,12 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
+#### Week 11.1 - 11.7
+
+1. Successfully set alarm
+2. Show an alarm marker on the place the user sets the alarm on the map
+3. Will finish calculating the accurate alarm time
+4. Will add action bar to do some settings
+
 #### Week 10.25 - 10.31
 
 1. Fixed the null pointer bug
