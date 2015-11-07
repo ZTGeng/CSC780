@@ -20,8 +20,8 @@ public class StreetDAOTest implements StreetDAOInterface {
         return null;
     }
 
-    @Override
-    public List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
-        return null;
-    }
+//    @Override
+//    public List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
+//        return null;
+//    }
 }

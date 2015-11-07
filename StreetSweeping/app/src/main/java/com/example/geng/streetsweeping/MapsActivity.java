@@ -120,18 +120,20 @@ public class MapsActivity extends FragmentActivity
             @Override
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
-                String sweepDate = mStreet.getSweepingDate();
-                if (sweepDate.length() == 0)
-                    sweepDate = getString(R.string.invalid_date);
-                ((TextView) v.findViewById(R.id.sweep_date)).setText(sweepDate);
-                String sweepTime = mStreet.getSweepingTime();
-                if (sweepTime.length() == 0)
-                    sweepTime = getString(R.string.invalid_time);
-                ((TextView) v.findViewById(R.id.sweep_time)).setText(sweepTime);
-                String nextTime = mStreet.getTimeTillNext();
-                if (nextTime.length() == 0)
-                    nextTime = getString(R.string.invalid_next_time);
-                ((TextView) v.findViewById(R.id.nextsweep)).setText(nextTime);
+                if (mStreet != null) {
+                    String sweepDate = mStreet.getSweepingDate(MapsActivity.this);
+                    if (sweepDate.length() == 0)
+                        sweepDate = getString(R.string.invalid_date);
+                    ((TextView) v.findViewById(R.id.sweep_date)).setText(sweepDate);
+                    String sweepTime = mStreet.getSweepingTime();
+                    if (sweepTime.length() == 0)
+                        sweepTime = getString(R.string.invalid_time);
+                    ((TextView) v.findViewById(R.id.sweep_time)).setText(sweepTime);
+                    String nextTime = mStreet.getTimeTillNext();
+                    if (nextTime.length() == 0)
+                        nextTime = getString(R.string.invalid_next_time);
+                    ((TextView) v.findViewById(R.id.nextsweep)).setText(nextTime);
+                }
                 return v;
             }
         });
@@ -149,15 +151,6 @@ public class MapsActivity extends FragmentActivity
                 }
             }
         });
-//        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-//            @Override
-//            public void onCameraChange(CameraPosition cameraPosition) {
-//                System.out.println("Camera is Changing!!!!!!!");
-//                if (cameraPosition.zoom > 15) {
-//                    setUpStreets();
-//                }
-//            }
-//        });
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
@@ -210,11 +203,10 @@ public class MapsActivity extends FragmentActivity
             streetName = TextUtils.join(", ", address);
 
             // query database get sweepDate
+            // mStreet could be null
             mStreet = getStreetByAddress(address[0]);
             if (mStreet != null) {
-                if (mStreet.getSweepingDate() != null) {
-                    sweepDate = mStreet.getSweepingTime() + " " + mStreet.getSweepingDate();
-                }
+                sweepDate = mStreet.getSweepingTime() + " " + mStreet.getSweepingDate(MapsActivity.this);
                 // draw street
                 streetViewer.addStreet(mStreet, true);
             }

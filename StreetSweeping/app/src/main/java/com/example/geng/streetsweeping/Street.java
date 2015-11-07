@@ -1,7 +1,9 @@
 package com.example.geng.streetsweeping;
 
 import android.content.Context;
+import android.content.res.Resources;
 
+import com.google.android.gms.appdatasearch.GetRecentContextCall;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -12,9 +14,9 @@ import java.util.List;
  */
 public class Street {
 
-    private static final String[] WEEKDAYS = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-    private static final String[] WEEKDAYSALL = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-    private static final String[] WEEKS = {"1st", "2nd", "3rd", "4th", "5th"};
+//    private static final String[] WEEKDAYS = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+//    private static final String[] WEEKDAYSALL = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+//    private static final String[] WEEKS = {"1st", "2nd", "3rd", "4th", "5th"};
     private static final String AM = "AM";
     private static final String PM = "PM";
 
@@ -28,6 +30,8 @@ public class Street {
     private String timeTo;
     private List<LatLng> latLngs;
     private String side;
+    private String sweepingDate;
+    private String sweepingTime;
 
     public Street(String name) {
         this.name = name;
@@ -52,8 +56,10 @@ public class Street {
         weekOfMonth[week] = true;
     }
 
-    public String getSweepingDate () {
+    public String getSweepingDate (Context context) {
+        if (sweepingDate != null) return sweepingDate;
         StringBuilder sweepDate = new StringBuilder();
+        Resources res = context.getResources();
         boolean flag = true;
         for (int i = 0; i < weekOfMonth.length; i++) {
             if (!weekOfMonth[i]) {
@@ -64,25 +70,27 @@ public class Street {
         if (flag) {
             for (int i = 0; i < weekday.length; i++) {
                 if (weekday[i]) {
-                    sweepDate.append(WEEKDAYSALL[i]).append(" ");
+                    sweepDate.append(res.getStringArray(R.array.WEEKDAYSALL)[i]).append(" ");
                 }
             }
         } else {
             for (int i = 0; i < weekOfMonth.length; i++) {
                 if (weekOfMonth[i]) {
-                    sweepDate.append(WEEKS[i]).append(" ");
+                    sweepDate.append(res.getStringArray(R.array.WEEKS)[i]).append(" ");
                 }
             }
             for (int i = 0; i < weekday.length; i++) {
                 if (weekday[i]) {
-                    sweepDate.append(WEEKDAYS[i]).append(" ");
+                    sweepDate.append(res.getStringArray(R.array.WEEKDAYS)[i]).append(" ");
                 }
             }
         }
-        return sweepDate.toString().trim();
+        sweepingDate = sweepDate.toString().trim();
+        return sweepingDate;
     }
 
     public String getSweepingTime() {
+        if (sweepingTime != null) return sweepingTime;
         StringBuilder sweepTime = new StringBuilder();
         if (this.timeFrom == null || this.timeTo == null) return sweepTime.toString();
         int timeFromInt = Integer.parseInt(this.timeFrom.substring(0,2));
@@ -92,7 +100,8 @@ public class Street {
         timeFromInt = (timeFromInt - 1) % 12 + 1;
         timeToInt = (timeToInt - 1) % 12 + 1;
         sweepTime.append(timeFromInt).append(halfDayFrom).append(" - ").append(timeToInt).append(halfDayTo);
-        return sweepTime.toString().trim();
+        sweepingTime = sweepTime.toString().trim();
+        return sweepingTime;
     }
 
     public String getTimeTillNext() {
@@ -124,7 +133,7 @@ public class Street {
         return this.timeTo;
     }
 
-    public List<LatLng> getlatLngs () {
+    public List<LatLng> getLatLngs () {
         return this.latLngs;
     }
 

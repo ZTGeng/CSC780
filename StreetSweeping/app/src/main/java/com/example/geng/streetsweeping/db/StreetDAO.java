@@ -5,12 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.geng.streetsweeping.Street;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 
 import static java.lang.System.*;
 
@@ -20,7 +16,16 @@ import static java.lang.System.*;
 public class StreetDAO implements StreetDAOInterface {
 
     private static HashMap<String, Integer> WEEKDAYS = new HashMap<>();
-    private static String[] WEEKOFMONTH = {"Week1OfMonth", "Week2OfMonth", "Week3OfMonth", "Week4OfMonth", "Week5OfMonth"};
+    private static String[] WEEK_OF_MONTH = {"Week1OfMonth", "Week2OfMonth", "Week3OfMonth", "Week4OfMonth", "Week5OfMonth"};
+    private static String table = "StreetSweepData";
+    private static String[] columns = {"GeneralInfo", "Weekday", "BlockSide", "CNNRightLeft", "Corridor",
+            "FromHour", "ToHour", "Week1OfMonth", "Week2OfMonth", "Week3OfMonth", "Week4OfMonth", "Week5OfMonth",
+            "LF_FADD", "LF_TOADD", "RT_TOADD", "RT_FADD", "ZipCode", "Coordinates"};
+    private final static String YES = "Yes";
+    private final static String LETTER_L = "L";
+    private final static String LETTER_R = "R";
+    private final static String SPACE = " ";
+    private final static String COMMA = ",";
 
     static {
         WEEKDAYS.put("SUN", 0);
@@ -57,20 +62,16 @@ public class StreetDAO implements StreetDAOInterface {
 
         Street street = null;
         Cursor resultCursor;
-        String table = "StreetSweepData";
-        String[] columns = {"GeneralInfo","Weekday","BlockSide","CNNRightLeft","Corridor","FromHour","ToHour","Week1OfMonth",
-                "Week2OfMonth","Week3OfMonth","Week4OfMonth","Week5OfMonth","LF_FADD","LF_TOADD","RT_TOADD","RT_FADD","ZipCode",
-                "Coordinates"};
         String selection = "Corridor = ?";
         String[] selectionArgs = {streetName};
         String groupBy = null;
         String having = null;
         String orderBy = null;
+        street = new Street(streetName);
         if(database.isOpen()) {
             resultCursor = database.query(table, columns, selection, selectionArgs, null, null, null);
             System.out.println("Total records of "+" "+ streetName+" is: " +resultCursor.getCount());
             resultCursor.moveToFirst();
-            street = new Street(streetName);
             if(!resultCursor.isAfterLast()) {
                 int cnnRightLeftIndex = resultCursor.getColumnIndex("CNNRightLeft");
                 int left_from_index = resultCursor.getColumnIndex("LF_FADD");
@@ -85,17 +86,17 @@ public class StreetDAO implements StreetDAOInterface {
                     if(houseNumber >= lower_address && houseNumber <= upper_address) {
                         String side = resultCursor.getString(cnnRightLeftIndex);
                         String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday"));
-                        if(houseNumber % 2 == lf_from % 2) {
-                            if(side.equals("L")) {
+                        if (houseNumber % 2 == lf_from % 2) {
+                            if (side.equals(LETTER_L)) {
                                 street.addWeekday(WEEKDAYS.get(weekday.toUpperCase()));
-                                if(street.getBlockSide() == null) {
+                                if (street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
                             }
                         } else {
-                            if(side.equals("R")) {
+                            if (side.equals(LETTER_R)) {
                                 street.addWeekday(WEEKDAYS.get(weekday.toUpperCase()));
-                                if( street.getBlockSide() == null) {
+                                if (street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
                             }
@@ -112,28 +113,28 @@ public class StreetDAO implements StreetDAOInterface {
         street.setSide(side);
         street.setTimeFrom(resultCursor.getString(resultCursor.getColumnIndex("FromHour")));
         street.setTimeTo(resultCursor.getString(resultCursor.getColumnIndex("ToHour")));
-        for (int i = 0; i < WEEKOFMONTH.length; i++) {
-            String weekOfMonth = resultCursor.getString(resultCursor.getColumnIndex(WEEKOFMONTH[i]));
-            if (weekOfMonth.equals("Yes")) street.addWeekOfMonth(i);
+        for (int i = 0; i < WEEK_OF_MONTH.length; i++) {
+            String weekOfMonth = resultCursor.getString(resultCursor.getColumnIndex(WEEK_OF_MONTH[i]));
+            if (weekOfMonth.equals(YES)) street.addWeekOfMonth(i);
         }
         String coordinates = resultCursor.getString(resultCursor.getColumnIndex("Coordinates"));
-        for (String s : coordinates.split(" ")) {
-            String[] sInside = s.split(",");
-            LatLng latLng = new LatLng(Double.parseDouble(sInside[0]), Double.parseDouble(sInside[1]));
+        for (String s : coordinates.split(SPACE)) {
+            String[] sInside = s.split(COMMA);
+            LatLng latLng = new LatLng(Double.parseDouble(sInside[1]), Double.parseDouble(sInside[0]));
             street.addLatLngs(latLng);
         }
     }
 
-    public List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
-        List<Street> streets = new ArrayList<>();
-
-        // for (LatLng latLng : LatLngs) {
-        //    if (latLngBounds.contains(latLng) && ) {
-        //        streets.add(new Street());
-        //    }
-        // }
-
-        return streets;
-    }
+//    public List<Street> getStreetsOnScreen(LatLngBounds latLngBounds) {
+//        List<Street> streets = new ArrayList<>();
+//
+//        // for (LatLng latLng : LatLngs) {
+//        //    if (latLngBounds.contains(latLng) && ) {
+//        //        streets.add(new Street());
+//        //    }
+//        // }
+//
+//        return streets;
+//    }
 
 }

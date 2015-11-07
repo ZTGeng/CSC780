@@ -11,7 +11,7 @@ import java.util.List;
  * Created by geng on 10/6/15.
  */
 public class StreetViewer {
-    public static int streetWidth = 20;
+    public static int streetWidth = 5;
     private final static int RED = 0xffff0000;
     private final static int GREY = 0xff808080;
 
@@ -31,7 +31,7 @@ public class StreetViewer {
 
     void addStreet(Street street, boolean active) {
         PolylineOptions polylineOptions = new PolylineOptions();
-        for (LatLng latLng : street.getlatLngs()) {
+        for (LatLng latLng : street.getLatLngs()) {
             polylineOptions.add(latLng);
         }
         polylineOptions.width(streetWidth); // default: 10

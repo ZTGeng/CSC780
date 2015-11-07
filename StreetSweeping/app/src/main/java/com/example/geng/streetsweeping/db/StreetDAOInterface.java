@@ -10,5 +10,5 @@ import java.util.List;
  */
 public interface StreetDAOInterface {
     public Street getStreetsByAddress(String streetName, int houseNumber);
-    List<Street> getStreetsOnScreen(LatLngBounds latLngBounds);
+//    List<Street> getStreetsOnScreen(LatLngBounds latLngBounds);
 }
