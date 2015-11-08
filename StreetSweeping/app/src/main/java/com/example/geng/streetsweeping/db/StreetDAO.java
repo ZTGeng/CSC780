@@ -35,6 +35,7 @@ public class StreetDAO implements StreetDAOInterface {
         WEEKDAYS.put("THU", 4);
         WEEKDAYS.put("FRI", 5);
         WEEKDAYS.put("SAT", 6);
+        WEEKDAYS.put("HOLIDAy", 7);
     }
 
     DBHelper dbHelper;
@@ -92,12 +93,18 @@ public class StreetDAO implements StreetDAOInterface {
                                 if (street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
                                 }
+                                if (street.getLatLngs().size() == 0) {
+                                    addLatLng(resultCursor, street);
+                                }
                             }
                         } else {
                             if (side.equals(LETTER_R)) {
                                 street.addWeekday(WEEKDAYS.get(weekday.toUpperCase()));
                                 if (street.getBlockSide() == null) {
                                     constructStreet(resultCursor, street, lf_from, lf_to, side);
+                                }
+                                if (street.getLatLngs().size() == 0) {
+                                    addLatLng(resultCursor, street);
                                 }
                             }
                         }
@@ -107,7 +114,7 @@ public class StreetDAO implements StreetDAOInterface {
         }
         return street;
     }
-    private void constructStreet (Cursor resultCursor, Street street, int addressFrom, int addressTo, String side) {
+    private void constructStreet(Cursor resultCursor, Street street, int addressFrom, int addressTo, String side) {
         String blockSide = resultCursor.getString(resultCursor.getColumnIndex("BlockSide"));
         street.setBlockSide(blockSide);
         street.setSide(side);
@@ -117,6 +124,10 @@ public class StreetDAO implements StreetDAOInterface {
             String weekOfMonth = resultCursor.getString(resultCursor.getColumnIndex(WEEK_OF_MONTH[i]));
             if (weekOfMonth.equals(YES)) street.addWeekOfMonth(i);
         }
+
+    }
+
+    private void addLatLng(Cursor resultCursor, Street street) {
         String coordinates = resultCursor.getString(resultCursor.getColumnIndex("Coordinates"));
         for (String s : coordinates.split(SPACE)) {
             String[] sInside = s.split(COMMA);

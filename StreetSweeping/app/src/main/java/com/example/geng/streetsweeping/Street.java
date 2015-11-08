@@ -7,6 +7,8 @@ import com.google.android.gms.appdatasearch.GetRecentContextCall;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -14,9 +16,6 @@ import java.util.List;
  */
 public class Street {
 
-//    private static final String[] WEEKDAYS = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-//    private static final String[] WEEKDAYSALL = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-//    private static final String[] WEEKS = {"1st", "2nd", "3rd", "4th", "5th"};
     private static final String AM = "AM";
     private static final String PM = "PM";
 
@@ -35,7 +34,7 @@ public class Street {
 
     public Street(String name) {
         this.name = name;
-        this.weekday = new boolean[7];
+        this.weekday = new boolean[8]; // weekday[7] <- holiday
         this.weekOfMonth = new boolean[5];
         this.latLngs = new ArrayList<>();
     }
@@ -61,7 +60,7 @@ public class Street {
         StringBuilder sweepDate = new StringBuilder();
         Resources res = context.getResources();
         boolean flag = true;
-        for (int i = 0; i < weekOfMonth.length; i++) {
+        for (int i = 1; i < weekOfMonth.length; i++) {
             if (!weekOfMonth[i]) {
                 flag = false;
                 break;
@@ -74,7 +73,7 @@ public class Street {
                 }
             }
         } else {
-            for (int i = 0; i < weekOfMonth.length; i++) {
+            for (int i = 1; i < weekOfMonth.length; i++) {
                 if (weekOfMonth[i]) {
                     sweepDate.append(res.getStringArray(R.array.WEEKS)[i]).append(" ");
                 }
@@ -93,19 +92,65 @@ public class Street {
         if (sweepingTime != null) return sweepingTime;
         StringBuilder sweepTime = new StringBuilder();
         if (this.timeFrom == null || this.timeTo == null) return sweepTime.toString();
-        int timeFromInt = Integer.parseInt(this.timeFrom.substring(0,2));
-        int timeToInt = Integer.parseInt(this.timeTo.substring(0,2));
-        String halfDayFrom = timeFromInt < 12 ? AM : PM;
-        String halfDayTo = timeFromInt < 12 ? AM : PM;
+        int timeFromInt = Integer.parseInt(this.timeFrom.substring(0, 2));
+        int timeToInt = Integer.parseInt(this.timeTo.substring(0, 2));
+        String AM_PM_From = timeFromInt < 12 ? AM : PM;
+        String AM_PM_To = timeToInt < 12 ? AM : PM;
         timeFromInt = (timeFromInt - 1) % 12 + 1;
         timeToInt = (timeToInt - 1) % 12 + 1;
-        sweepTime.append(timeFromInt).append(halfDayFrom).append(" - ").append(timeToInt).append(halfDayTo);
+        sweepTime.append(timeFromInt).append(AM_PM_From).append(" - ").append(timeToInt).append(AM_PM_To);
         sweepingTime = sweepTime.toString().trim();
         return sweepingTime;
     }
 
-    public String getTimeTillNext() {
-        return "";
+    public String getTimeTillNext(Context context) {
+        if (timeFrom == null || timeTo == null) return "";
+        Calendar now = Calendar.getInstance();
+        int currentWeekOfMonth = now.get(Calendar.WEEK_OF_MONTH);
+        int currentWeekday = now.get(Calendar.DAY_OF_WEEK) - 1; // Calendar.DAY_OF_WEEK starts with 1 (Sunday)
+        int currentHour = now.get(Calendar.HOUR_OF_DAY);
+        int timeFromInt = Integer.parseInt(this.timeFrom.substring(0, 2));
+        int timeToInt = Integer.parseInt(this.timeTo.substring(0, 2));
+        if (weekOfMonth[currentWeekOfMonth] && weekday[currentWeekday] &&
+                currentHour >= timeFromInt && currentHour < timeToInt) {
+            return context.getString(R.string.NOW);
+        }
+
+        int year = now.get(Calendar.YEAR);
+        int month = now.get(Calendar.MONTH);
+
+        Calendar sweepDate = getNextCalendar(now, year, month, timeFromInt);
+        if (sweepDate == null) {
+            month = (month + 1) % 12;
+            if (month == 0) year++;
+            sweepDate = getNextCalendar(now, year, month, timeFromInt);
+        }
+        if (sweepDate == null) return "";
+
+        int period = (int) (sweepDate.getTimeInMillis() / 1000 - now.getTimeInMillis() / 1000);
+        int days = period / (60 * 60 * 24);
+        period %= (60 * 60 * 24);
+        int hrs = period / (60 * 60);
+        period %= (60 * 60);
+        int mins = period / 60;
+        return String.format(context.getString(R.string.next_time), days, hrs, mins);
+    }
+
+    private Calendar getNextCalendar(Calendar now, int year, int month, int hour) {
+        Calendar sweepDate = Calendar.getInstance();
+        sweepDate.set(year, month, 1, hour, 0);
+        int[] weekdayCount = new int[7];
+        for (int day = 1; day <= sweepDate.getActualMaximum(Calendar.DATE); day++) {
+            sweepDate.set(Calendar.DATE, day);
+            int dayName = sweepDate.get(Calendar.DAY_OF_WEEK) - 1;
+            weekdayCount[dayName]++;
+            if (weekOfMonth[weekdayCount[dayName] - 1] && weekday[dayName]) {
+                if (sweepDate.after(now)) {
+                    return sweepDate;
+                }
+            }
+        }
+        return null;
     }
 
     public String getStreetName () {

@@ -129,7 +129,7 @@ public class MapsActivity extends FragmentActivity
                     if (sweepTime.length() == 0)
                         sweepTime = getString(R.string.invalid_time);
                     ((TextView) v.findViewById(R.id.sweep_time)).setText(sweepTime);
-                    String nextTime = mStreet.getTimeTillNext();
+                    String nextTime = mStreet.getTimeTillNext(MapsActivity.this);
                     if (nextTime.length() == 0)
                         nextTime = getString(R.string.invalid_next_time);
                     ((TextView) v.findViewById(R.id.nextsweep)).setText(nextTime);

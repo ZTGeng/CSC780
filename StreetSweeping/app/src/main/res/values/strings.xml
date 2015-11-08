@@ -18,6 +18,8 @@
     <string name="invalid_next_time">0 days 0 hrs 0 mins</string>
     <string name="NEXT">NEXT:</string>
     <string name="set_alarm">Click to Set Alarm</string>
+    <string name="NOW">NOW</string>
+    <string name="next_time">%1$d days %2$d hrs %3$d mins</string>
 
     <!-- alert dialogue -->
     <string name="set_alarm_title">Set Alarm</string>
@@ -43,6 +45,7 @@
         <item>Thursday</item>
         <item>Friday</item>
         <item>Saturday</item>
+        <item>Holiday</item>
     </string-array>
     <string-array name="WEEKS">
         <item>1st</item>
