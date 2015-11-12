@@ -1,8 +1,11 @@
 package com.example.geng.streetsweeping;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -16,6 +19,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -37,6 +42,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final List<String> _numbers = Arrays.asList("1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th");
+
     private static final float BLUE = BitmapDescriptorFactory.HUE_AZURE;
     private static final float RED  = BitmapDescriptorFactory.HUE_RED;
 
@@ -44,13 +51,17 @@ public class MapsActivity extends FragmentActivity
     GoogleApiClient mGoogleApiClient;
     Marker mMarker;
     Street mStreet;
-    AlarmHolder alarmHolder;
+    //AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
     StreetDAOInterface streetDAO;
 
     TextView streetNameTextView;
     TextView sweepDateTextView;
+
+    // Alarm
+    AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +76,13 @@ public class MapsActivity extends FragmentActivity
         streetDAO = new StreetDAO(new DBHelper(this));
         streetNameTextView = (TextView) findViewById(R.id.streetname);
         sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
-        alarmHolder = new AlarmHolder(this);
+        //alarmHolder = new AlarmHolder(this);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
         //setUpStreets();
+
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
     }
 
@@ -121,15 +134,15 @@ public class MapsActivity extends FragmentActivity
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
                 if (mStreet != null) {
-                    String sweepDate = mStreet.getSweepingDate(MapsActivity.this);
+                    String sweepDate = mStreet.getSweepDate();
                     if (sweepDate.length() == 0)
                         sweepDate = getString(R.string.invalid_date);
                     ((TextView) v.findViewById(R.id.sweep_date)).setText(sweepDate);
-                    String sweepTime = mStreet.getSweepingTime();
+                    String sweepTime = mStreet.getSweepTime();
                     if (sweepTime.length() == 0)
                         sweepTime = getString(R.string.invalid_time);
                     ((TextView) v.findViewById(R.id.sweep_time)).setText(sweepTime);
-                    String nextTime = mStreet.getTimeTillNext(MapsActivity.this);
+                    String nextTime = getNextSweepString();
                     if (nextTime.length() == 0)
                         nextTime = getString(R.string.invalid_next_time);
                     ((TextView) v.findViewById(R.id.nextsweep)).setText(nextTime);
@@ -206,7 +219,7 @@ public class MapsActivity extends FragmentActivity
             // mStreet could be null
             mStreet = getStreetByAddress(address[0]);
             if (mStreet != null) {
-                sweepDate = mStreet.getSweepingTime() + " " + mStreet.getSweepingDate(MapsActivity.this);
+                sweepDate = mStreet.getSweepTime() + " " + mStreet.getSweepDate();
                 // draw street
                 streetViewer.addStreet(mStreet, true);
             }
@@ -273,6 +286,11 @@ public class MapsActivity extends FragmentActivity
             } else {
                 return null;
             }
+            // !!!!!!! "1st St" -> "01st St"
+            if (_numbers.contains(strArray[1].substring(0, 3))) {
+                strArray[1] = "0".concat(strArray[1]);
+            }
+            // !!!!!!! Delete it after modified the database
             return streetDAO.getStreetsByAddress(strArray[1], num);
         } catch (NumberFormatException e) {
             return null;
@@ -288,6 +306,22 @@ public class MapsActivity extends FragmentActivity
         mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                 .icon(BitmapDescriptorFactory.defaultMarker(color)));
         mMarker.showInfoWindow();
+    }
+
+    private String getNextSweepString() {
+        if (mStreet == null) return "";
+        Calendar nextSweepCalendar = mStreet.getNextSweepCalendar();
+        if (nextSweepCalendar == null) {
+            return getString(R.string.invalid_next_time);
+        }
+        Calendar now = Calendar.getInstance();
+        int period = (int) (nextSweepCalendar.getTimeInMillis() / 1000 - now.getTimeInMillis() / 1000);
+        int days = period / (60 * 60 * 24);
+        period %= (60 * 60 * 24);
+        int hrs = period / (60 * 60);
+        period %= (60 * 60);
+        int mins = period / 60;
+        return String.format(getString(R.string.next_time), days, hrs, mins);
     }
 
     private void showAlert() {
@@ -328,11 +362,17 @@ public class MapsActivity extends FragmentActivity
     }
 
     private void setAlarm() {
-        System.out.println("Set up the Alarm!!!!!!!!!");
+        if (mStreet == null) return;
+        Calendar calendar = mStreet.getNextSweepCalendar();
+        if (calendar == null) return;
+        Intent myIntent = new Intent(MapsActivity.this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(MapsActivity.this, 0, myIntent, 0);
+        alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
     }
 
     private void removeAlarm() {
-
+        if (pendingIntent != null)
+            alarmManager.cancel(pendingIntent);
     }
 
     private LatLng locToLat(Location location) {

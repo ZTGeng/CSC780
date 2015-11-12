@@ -27,7 +27,7 @@
     <string name="OK">OK</string>
     <string name="Cancel">Cancel</string>
 
-    <!-- Arrays -->
+    <!-- Arrays
     <string-array name="WEEKDAYS">
         <item>Sun</item>
         <item>Mon</item>
@@ -37,7 +37,7 @@
         <item>Fri</item>
         <item>Sat</item>
     </string-array>
-    <string-array name="WEEKDAYSALL">
+    <string-array name="WEEKDAYS_LONG">
         <item>Sunday</item>
         <item>Monday</item>
         <item>Tuesday</item>
@@ -54,6 +54,7 @@
         <item>4th</item>
         <item>5th</item>
     </string-array>
+    -->
 
 
 </resources>
