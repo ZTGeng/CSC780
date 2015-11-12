@@ -49,15 +49,6 @@ public class StreetDAO implements StreetDAOInterface {
         //testDB();
     }
 
-//    public void testDB() {
-//        out.println("testing db here");
-//        out.println(this.getClass()+ " gets " +database.getPath());
-//        out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//        Street test = getStreetsByAddress("10th Ave", 99);
-//        out.println(test.toString());
-//        out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//        return;
-//    }
 
     public Street getStreetsByAddress(String streetName, int houseNumber) {
         //null input checking
@@ -174,7 +165,9 @@ public class StreetDAO implements StreetDAOInterface {
                     latLngsSame = latLngsOther;
                 }
             }
+            resultCursor.close();
         }
+
         return new Street(streetName, weekdaysSame, weekOfMonthsSame, side, timeFrom, timeTo, latLngsSame);
     }
 
