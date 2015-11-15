@@ -51,6 +51,8 @@ public class MapsActivity extends FragmentActivity
     GoogleApiClient mGoogleApiClient;
     Marker mMarker;
     Street mStreet;
+    Marker mParkMarker;
+    LatLng mParkLocation;
     //AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
@@ -154,6 +156,9 @@ public class MapsActivity extends FragmentActivity
             @Override
             public void onMapLongClick(LatLng latLng) {
                 showAddressAndMarker(latLng, RED);
+                if(mParkLocation != null) {
+                    addMarkerAndInfoWindow(true,mParkLocation,0);
+                }
             }
         });
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -192,7 +197,7 @@ public class MapsActivity extends FragmentActivity
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                showAlert();
+                showAlert(marker);
             }
         });
     }
@@ -201,7 +206,7 @@ public class MapsActivity extends FragmentActivity
      * Call {@link #getStreetName(LatLng)} to get address of a location,
      * then set {@link #streetNameTextView} with the whole address.
      * Then clear the map and redraw the street lines, and active one of them.
-     * Then call {@link #addMarkerAndInfoWindow(LatLng, float)}
+     * Then call {@link #addMarkerAndInfoWindow(boolean, LatLng, float)}
      * to add a Marker and an InfoWindow at the location.
      * @param latLng The location.
      * @param color Color of the Marker. Azure(blue) if current location; red if user click.
@@ -226,7 +231,7 @@ public class MapsActivity extends FragmentActivity
         }
         streetNameTextView.setText(streetName);
         sweepDateTextView.setText(sweepDate);
-        addMarkerAndInfoWindow(latLng, color);
+        addMarkerAndInfoWindow(false, latLng, color);
     }
 
     private void showAddressAndMarker(Location location, float color) {
@@ -302,10 +307,16 @@ public class MapsActivity extends FragmentActivity
      * @param latLng A location on the map.
      * @param color Color of the Marker.
      */
-    private void addMarkerAndInfoWindow(LatLng latLng, float color) {
-        mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
-                .icon(BitmapDescriptorFactory.defaultMarker(color)));
-        mMarker.showInfoWindow();
+    private void addMarkerAndInfoWindow(boolean park, LatLng latLng, float color) {
+        if(park) {
+            mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+            mParkMarker.showInfoWindow();
+        }else {
+            mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+            mMarker.showInfoWindow();
+        }
     }
 
     private String getNextSweepString() {
@@ -324,7 +335,7 @@ public class MapsActivity extends FragmentActivity
         return String.format(getString(R.string.next_time), days, hrs, mins);
     }
 
-    private void showAlert() {
+    private void showAlert(Marker marker) {
 
         /**
          * An AlertDialog builder is used to build up the details of the modal
@@ -335,14 +346,18 @@ public class MapsActivity extends FragmentActivity
                 .setMessage(R.string.set_alarm_description)
                 .setIcon(android.R.drawable.ic_lock_idle_alarm);
         AlertDialog dlg = builder.create();
+        final Marker parkMarker = marker;
         dlg.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // remove alarm
                 removeAlarm();
                 // set up alarm
                 setAlarm();
+                //remove park marker
+                removeParkMarker();
+                // set up park marker
+                setParkMarker(parkMarker.getPosition());
             }
         });
 
@@ -373,6 +388,18 @@ public class MapsActivity extends FragmentActivity
     private void removeAlarm() {
         if (pendingIntent != null)
             alarmManager.cancel(pendingIntent);
+    }
+
+    private void removeParkMarker() {
+        if(mParkMarker != null) {
+            mParkMarker.remove();
+            mParkMarker = null;
+        }
+    }
+
+    private void setParkMarker(LatLng latLng) {
+        addMarkerAndInfoWindow(true, latLng, 0);
+        mParkLocation = latLng;
     }
 
     private LatLng locToLat(Location location) {
