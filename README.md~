@@ -1,15 +1,5 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
-
-#### Week 11.8 - 11.14
-
-1. The alarm time is accurate now
-2. Notification is pushed when the time set for alarm is up
-3. User can go directrly back to the app by clicking the alarm notification
-4. Will added function that allow user to set when the desired alarm time
-5. Will added function to show the parking where the alarm is not expired
- 
-
 #### Week 11.1 - 11.7
 
 1. Successfully set alarm
