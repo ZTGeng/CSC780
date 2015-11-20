@@ -94,8 +94,6 @@ public class MapsActivity extends AppCompatActivity
         //setUpStreets();
 
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
-        preferenceEditor = sharedPreferences.edit();
     }
 
 
@@ -126,9 +124,12 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    public void onMapReady(GoogleMap map) {
-        map.addMarker(new MarkerOptions()
-                .position(new LatLng(sharedPreferences.getLong(PARK_LAT_KEY, -1), sharedPreferences.getLong(PARK_LNG_KEY, -1))));
+    public void showParkMarker() {
+        double temp_lat = Double.valueOf(sharedPreferences.getString(PARK_LAT_KEY, null));
+        double temp_lng = Double.valueOf(sharedPreferences.getString(PARK_LNG_KEY, null));
+        addMarkerAndInfoWindow(true, new LatLng(temp_lat,temp_lng), 0);
+        System.out.println("-------------inside showParkerMarker-------------");
+        return;
     }
 
     /**
@@ -417,13 +418,24 @@ public class MapsActivity extends AppCompatActivity
     private void setParkMarker(LatLng latLng) {
         addMarkerAndInfoWindow(true, latLng, 0);
         mParkLocation = latLng;
-        long lat = (long)latLng.latitude;
-        long lng = (long)latLng.longitude;
+        String lat =String.valueOf(latLng.latitude);
+        String lng = String.valueOf(latLng.longitude);
 
-        preferenceEditor.putLong(PARK_LAT_KEY, lat);
-        preferenceEditor.putLong(PARK_LNG_KEY, lng);
+        if(sharedPreferences == null) {
+            sharedPreferences =getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+            preferenceEditor = sharedPreferences.edit();
+        }
+
+        preferenceEditor.putString(PARK_LAT_KEY, lat);
+        preferenceEditor.putString(PARK_LNG_KEY, lng);
 
         preferenceEditor.commit();
+
+//        if(sharedPreferences.contains(PARK_LNG_KEY)) {
+//            System.out.println("-------------shared preference has lng!-------------");
+//            System.out.println("-------------real lng-------------" + latLng.longitude);
+//            System.out.println("-------------lng shared preference!-------------" + sharedPreferences.getString(PARK_LNG_KEY, null));
+//        }
 
     }
 
