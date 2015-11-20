@@ -46,7 +46,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final List<String> _numbers = Arrays.asList("1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th");
+
 
     private static final float BLUE = BitmapDescriptorFactory.HUE_AZURE;
     private static final float RED  = BitmapDescriptorFactory.HUE_RED;
@@ -60,8 +60,9 @@ public class MapsActivity extends AppCompatActivity
     Street mStreet;
     Marker mParkMarker;
     LatLng mParkLocation;
+    Street mParkStreet;
     SharedPreferences sharedPreferences;
-    SharedPreferences.Editor preferenceEditor;
+//    SharedPreferences.Editor preferenceEditor;
 
     Toolbar toolbar;
 
@@ -70,8 +71,8 @@ public class MapsActivity extends AppCompatActivity
     StreetViewer streetViewer;
     StreetDAOInterface streetDAO;
 
-    TextView streetNameTextView;
-    TextView sweepDateTextView;
+//    TextView streetNameTextView;
+//    TextView sweepDateTextView;
 
     // Alarm
     AlarmManager alarmManager;
@@ -91,8 +92,8 @@ public class MapsActivity extends AppCompatActivity
 
         streetViewer = new StreetViewer(mMap);
         streetDAO = new StreetDAO(new DBHelper(this));
-        streetNameTextView = (TextView) findViewById(R.id.streetname);
-        sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
+//        streetNameTextView = (TextView) findViewById(R.id.streetname);
+//        sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
         //alarmHolder = new AlarmHolder(this);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
@@ -133,7 +134,7 @@ public class MapsActivity extends AppCompatActivity
     public void showParkMarker() {
         double temp_lat = Double.valueOf(sharedPreferences.getString(PARK_LAT_KEY, null));
         double temp_lng = Double.valueOf(sharedPreferences.getString(PARK_LNG_KEY, null));
-        addMarkerAndInfoWindow(true, new LatLng(temp_lat,temp_lng), 0);
+        addMarkerAndInfoWindow(true, new LatLng(temp_lat, temp_lng), 0);
         System.out.println("-------------inside showParkerMarker-------------");
         return;
     }
@@ -157,12 +158,21 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public View getInfoContents(Marker marker) {
                 View v = getLayoutInflater().inflate(R.layout.info_window_layout, null);
-                if (mStreet != null) {
-                    String sweepDate = mStreet.getSweepDate();
+                ((TextView) v.findViewById(R.id.streetname)).setText(marker.getSnippet());
+                Street street;
+                if (marker.equals(mParkMarker)) {
+                    street = mParkStreet;
+                    ((TextView) v.findViewById(R.id.click_tip)).setText(R.string.cancel_alarm);
+                } else {
+                    street = mStreet;
+                    ((TextView) v.findViewById(R.id.click_tip)).setText(R.string.set_alarm);
+                }
+                if (street != null) {
+                    String sweepDate = street.getSweepDate();
                     if (sweepDate.length() == 0)
                         sweepDate = getString(R.string.invalid_date);
                     ((TextView) v.findViewById(R.id.sweep_date)).setText(sweepDate);
-                    String sweepTime = mStreet.getSweepTime();
+                    String sweepTime = street.getSweepTime();
                     if (sweepTime.length() == 0)
                         sweepTime = getString(R.string.invalid_time);
                     ((TextView) v.findViewById(R.id.sweep_time)).setText(sweepTime);
@@ -170,6 +180,8 @@ public class MapsActivity extends AppCompatActivity
                     if (nextTime.length() == 0)
                         nextTime = getString(R.string.invalid_next_time);
                     ((TextView) v.findViewById(R.id.nextsweep)).setText(nextTime);
+                    ((TextView) v.findViewById(R.id.streetname)).setText(street.getStreetName());
+
                 }
                 return v;
             }
@@ -177,7 +189,13 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
-                showAddressAndMarker(latLng, RED);
+                updateStreet(latLng, false);
+                mMap.clear();
+                addMarkerAndInfoWindow(false, latLng, RED);
+                if (mStreet != null) {
+                    streetViewer.addStreet(mStreet, true);
+                }
+//                showAddressAndMarker(latLng, RED);
                 if(mParkLocation != null) {
                     addMarkerAndInfoWindow(true,mParkLocation,0);
                 }
@@ -188,6 +206,9 @@ public class MapsActivity extends AppCompatActivity
             public void onMapClick(LatLng latLng) {
                 if (mMarker != null) {
                     mMarker.hideInfoWindow();
+                }
+                if (mParkMarker != null) {
+                    mParkMarker.hideInfoWindow();
                 }
             }
         });
@@ -201,10 +222,13 @@ public class MapsActivity extends AppCompatActivity
                 }
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
-                    showAddressAndMarker(mLastLocation, BLUE);
+                    updateStreet(locToLat(mLastLocation), false);
+                    mMap.clear();
+                    addMarkerAndInfoWindow(false, locToLat(mLastLocation), BLUE);
+//                    showAddressAndMarker(mLastLocation, BLUE);
                     centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
-                } else {
-                    streetNameTextView.setText(R.string.address_unavailable);
+//                } else {
+//                    streetNameTextView.setText(R.string.address_unavailable);
                 }
                 if(mParkMarker != null) {
                     addMarkerAndInfoWindow(true, mParkLocation, 0);
@@ -222,46 +246,62 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                showAlert(marker);
+                if (marker.equals(mParkMarker)) {
+                    // cancel dialog
+                } else {
+                    showAlert(marker);
+                }
             }
         });
     }
 
-    /**
-     * Call {@link #getStreetName(LatLng)} to get address of a location,
-     * then set {@link #streetNameTextView} with the whole address.
-     * Then clear the map and redraw the street lines, and active one of them.
-     * Then call {@link #addMarkerAndInfoWindow(boolean, LatLng, float)}
-     * to add a Marker and an InfoWindow at the location.
-     * @param latLng The location.
-     * @param color Color of the Marker. Azure(blue) if current location; red if user click.
-     */
-    private void showAddressAndMarker(LatLng latLng, float color) {
-        String streetName = getString(R.string.address_unavailable);
-        String sweepDate = getString(R.string.date_unavailable);
+//    /**
+//     * Call {@link #getStreetName(LatLng)} to get address of a location.
+//     * Then clear the map and redraw the street lines, and active one of them.
+//     * Then call {@link #addMarkerAndInfoWindow(boolean, LatLng, float)}
+//     * to add a Marker and an InfoWindow at the location.
+//     * @param latLng The location.
+//     * @param color Color of the Marker. Azure(blue) if current location; red if user click.
+//     */
+//    private void showAddressAndMarker(LatLng latLng, float color) {
+////        String streetName = getString(R.string.address_unavailable);
+////        String sweepDate = getString(R.string.date_unavailable);
+////
+//        String[] address = getStreetName(latLng);
+//        mMap.clear();
+//        if (address.length != 0) {
+////            streetName = TextUtils.join(", ", address);
+////
+////            // query database get sweepDate
+////            // mStreet could be null
+//            mStreet = getStreetByAddress(address[0]);
+//            if (mStreet != null) {
+////                sweepDate = mStreet.getSweepTime() + " " + mStreet.getSweepDate();
+////                // draw street
+//                streetViewer.addStreet(mStreet, true);
+//            }
+//        }
+////        streetNameTextView.setText(streetName);
+////        sweepDateTextView.setText(sweepDate);
+//        addMarkerAndInfoWindow(false, latLng, address[0], color);
+//    }
 
+    // Good!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    private void updateStreet(LatLng latLng, boolean isPark) {
         String[] address = getStreetName(latLng);
-        mMap.clear();
         if (address.length != 0) {
-            streetName = TextUtils.join(", ", address);
-
-            // query database get sweepDate
-            // mStreet could be null
-            mStreet = getStreetByAddress(address[0]);
-            if (mStreet != null) {
-                sweepDate = mStreet.getSweepTime() + " " + mStreet.getSweepDate();
-                // draw street
-                streetViewer.addStreet(mStreet, true);
+            if (isPark) {
+                mParkStreet = getStreetByAddress(address[0]);
+            } else {
+                mStreet = getStreetByAddress(address[0]);
             }
         }
-        streetNameTextView.setText(streetName);
-        sweepDateTextView.setText(sweepDate);
-        addMarkerAndInfoWindow(false, latLng, color);
+
     }
 
-    private void showAddressAndMarker(Location location, float color) {
-        showAddressAndMarker(locToLat(location), color);
-    }
+//    private void showAddressAndMarker(Location location, float color) {
+//        showAddressAndMarker(locToLat(location), color);
+//    }
 
     /**
      * Center the map to the location, zoom to 16, without tilt or bearing.
@@ -301,30 +341,7 @@ public class MapsActivity extends AppCompatActivity
      * @return Street object
      */
     private Street getStreetByAddress(String numberAndName) {
-        String[] strArray = numberAndName.trim().split(" ", 2);
-        if (strArray.length < 2) return null;
-        String[] numStrings = strArray[0].split("-");
-        try {
-            int num;
-            if (numStrings.length == 1) {
-                num = Integer.parseInt(numStrings[0]);
-            } else if (numStrings.length == 2) {
-                int num0 = Integer.parseInt(numStrings[0]);
-                int num1 = Integer.parseInt(numStrings[1]);
-                num = (num0 + num1) / 2;
-                if (num0 % 2 != num % 2) num--;
-            } else {
-                return null;
-            }
-            // !!!!!!! "1st St" -> "01st St"
-            if (_numbers.contains(strArray[1].substring(0, 3))) {
-                strArray[1] = "0".concat(strArray[1]);
-            }
-            // !!!!!!! Delete it after modified the database
-            return streetDAO.getStreetsByAddress(strArray[1], num);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return streetDAO.getStreetsByAddress(numberAndName);
     }
 
     /**
@@ -333,10 +350,11 @@ public class MapsActivity extends AppCompatActivity
      * @param color Color of the Marker.
      */
     private void addMarkerAndInfoWindow(boolean park, LatLng latLng, float color) {
-        if(park) {
+        if (park) {
+
             mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
-        }else {
+        } else {
             mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                     .icon(BitmapDescriptorFactory.defaultMarker(color)));
             mMarker.showInfoWindow();
@@ -378,6 +396,8 @@ public class MapsActivity extends AppCompatActivity
                 removeAlarm();
                 // set up alarm
                 setAlarm();
+
+                mParkStreet = mStreet;
                 //remove park marker
                 removeParkMarker();
                 // set up park marker
@@ -418,25 +438,28 @@ public class MapsActivity extends AppCompatActivity
         if(mParkMarker != null) {
             mParkMarker.remove();
             mParkMarker = null;
-            preferenceEditor.clear().apply();
+            mParkStreet = null;
+            if (sharedPreferences != null) {
+                sharedPreferences.edit().clear().apply();
+            }
         }
     }
     //also added the positions to sharedPreference
     private void setParkMarker(LatLng latLng) {
         addMarkerAndInfoWindow(true, latLng, 0);
         mParkLocation = latLng;
-        String lat =String.valueOf(latLng.latitude);
+        String lat = String.valueOf(latLng.latitude);
         String lng = String.valueOf(latLng.longitude);
 
-        if(sharedPreferences == null) {
-            sharedPreferences =getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
-            preferenceEditor = sharedPreferences.edit();
+        if (sharedPreferences == null) {
+            sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+//            preferenceEditor = sharedPreferences.edit();
         }
 
-        preferenceEditor.putString(PARK_LAT_KEY, lat);
-        preferenceEditor.putString(PARK_LNG_KEY, lng);
-
-        preferenceEditor.apply();
+        sharedPreferences.edit()
+                .putString(PARK_LAT_KEY, lat)
+                .putString(PARK_LNG_KEY, lng)
+                .apply();
 
 //        if(sharedPreferences.contains(PARK_LNG_KEY)) {
 //            System.out.println("-------------shared preference has lng!-------------");
@@ -480,8 +503,11 @@ public class MapsActivity extends AppCompatActivity
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             //userMoveMap = false;
+//            showAddressAndMarker(mLastLocation, BLUE);
+            updateStreet(locToLat(mLastLocation), false);
+            mMap.clear();
             centerMap(mLastLocation);
-            showAddressAndMarker(mLastLocation, BLUE);
+            addMarkerAndInfoWindow(false, locToLat(mLastLocation), BLUE);
         }
 
     }

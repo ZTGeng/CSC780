@@ -259,9 +259,9 @@ public class Street {
 //        return null;
 //    }
 //
-////    public String getStreetName () {
-////        return this.name;
-////    }
+    public String getStreetName () {
+        return this.name;
+    }
 ////
 ////    public int getAddressFrom () {
 ////        return this.addressFrom;

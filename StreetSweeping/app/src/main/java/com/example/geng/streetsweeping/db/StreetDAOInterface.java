@@ -9,6 +9,6 @@ import java.util.List;
  * Created by geng on 10/22/15.
  */
 public interface StreetDAOInterface {
-    public Street getStreetsByAddress(String streetName, int houseNumber);
+    public Street getStreetsByAddress(String streetName);
 //    List<Street> getStreetsOnScreen(LatLngBounds latLngBounds);
 }

@@ -7,6 +7,7 @@ import com.example.geng.streetsweeping.Street;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class StreetDAO implements StreetDAOInterface {
     private static String[] columns = {"GeneralInfo", "Weekday", "BlockSide", "CNNRightLeft", "Corridor",
             "FromHour", "ToHour", "Week1OfMonth", "Week2OfMonth", "Week3OfMonth", "Week4OfMonth", "Week5OfMonth",
             "LF_FADD", "LF_TOADD", "RT_TOADD", "RT_FADD", "ZipCode", "Coordinates"};
+    private static final List<String> _numbers = Arrays.asList("1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th");
     private final static String YES = "Yes";
     private final static String LETTER_L = "L";
     private final static String LETTER_R = "R";
@@ -50,7 +52,32 @@ public class StreetDAO implements StreetDAOInterface {
     }
 
 
-    public Street getStreetsByAddress(String streetName, int houseNumber) {
+    public Street getStreetsByAddress(String numberAndName) {
+        String[] strArray = numberAndName.trim().split(" ", 2);
+        if (strArray.length < 2) return null;
+        String[] numStrings = strArray[0].split("-");
+        int houseNumber;
+        try {
+            if (numStrings.length == 1) {
+                houseNumber = Integer.parseInt(numStrings[0]);
+            } else if (numStrings.length == 2) {
+                int num0 = Integer.parseInt(numStrings[0]);
+                int num1 = Integer.parseInt(numStrings[1]);
+                houseNumber = (num0 + num1) / 2;
+                if (num0 % 2 != houseNumber % 2) houseNumber--;
+            } else {
+                return null;
+            }
+            // !!!!!!! "1st St" -> "01st St"
+            if (_numbers.contains(strArray[1].substring(0, 3))) {
+                strArray[1] = "0".concat(strArray[1]);
+            }
+            // !!!!!!! Delete it after modified the database
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        String streetName = strArray[1];
         //null input checking
         if(streetName == null || streetName.isEmpty()) return null;
 
@@ -168,7 +195,7 @@ public class StreetDAO implements StreetDAOInterface {
             resultCursor.close();
         }
 
-        return new Street(streetName, weekdaysSame, weekOfMonthsSame, side, timeFrom, timeTo, latLngsSame);
+        return new Street(numberAndName, weekdaysSame, weekOfMonthsSame, side, timeFrom, timeTo, latLngsSame);
     }
 
     private void addLatLng(Cursor resultCursor, ArrayList<LatLng> latLngs) {
