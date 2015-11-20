@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -62,6 +63,8 @@ public class MapsActivity extends AppCompatActivity
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor preferenceEditor;
 
+    Toolbar toolbar;
+
     //AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
@@ -79,6 +82,9 @@ public class MapsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         System.out.println("-------------onCreate-------------");
         setContentView(R.layout.main_layout);
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         setUpMapIfNeeded();
         // mMap is supposed to be not null since this point.
@@ -200,7 +206,7 @@ public class MapsActivity extends AppCompatActivity
                     streetNameTextView.setText(R.string.address_unavailable);
                 }
                 if(mParkMarker != null) {
-                    addMarkerAndInfoWindow(true,mParkLocation,0);
+                    addMarkerAndInfoWindow(true, mParkLocation, 0);
                 }
                 return true;
             }
@@ -411,6 +417,7 @@ public class MapsActivity extends AppCompatActivity
         if(mParkMarker != null) {
             mParkMarker.remove();
             mParkMarker = null;
+            preferenceEditor.clear().apply();
         }
     }
     //also added the positions to sharedPreference
@@ -423,8 +430,15 @@ public class MapsActivity extends AppCompatActivity
         preferenceEditor.putLong(PARK_LAT_KEY, lat);
         preferenceEditor.putLong(PARK_LNG_KEY, lng);
 
-        preferenceEditor.commit();
+        preferenceEditor.apply();
 
+    }
+
+    public void cancelAlarm(View view) {
+        if (mParkMarker != null) {
+            removeParkMarker();
+            removeAlarm();
+        }
     }
 
     private LatLng locToLat(Location location) {
