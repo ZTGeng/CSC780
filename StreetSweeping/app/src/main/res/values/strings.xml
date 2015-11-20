@@ -26,7 +26,6 @@
     <string name="set_alarm_description">Alert half an hour before next sweeping time. (All the old alarms will be removed.)</string>
     <string name="OK">OK</string>
     <string name="Cancel">Cancel</string>
-
     <!-- Arrays
     <string-array name="WEEKDAYS">
         <item>Sun</item>

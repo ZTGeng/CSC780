@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -14,6 +15,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -39,13 +42,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity
+public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final List<String> _numbers = Arrays.asList("1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th");
 
     private static final float BLUE = BitmapDescriptorFactory.HUE_AZURE;
     private static final float RED  = BitmapDescriptorFactory.HUE_RED;
+    private static final String PREFERENCES_FILE_NAME = "MyAppPreferences";
+    private static final String PARK_LAT_KEY = "parkLatKey";
+    private static final String PARK_LNG_KEY = "parkLngKey";
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     GoogleApiClient mGoogleApiClient;
@@ -53,6 +59,9 @@ public class MapsActivity extends FragmentActivity
     Street mStreet;
     Marker mParkMarker;
     LatLng mParkLocation;
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor preferenceEditor;
+
     //AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
@@ -85,7 +94,8 @@ public class MapsActivity extends FragmentActivity
         //setUpStreets();
 
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
+        sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+        preferenceEditor = sharedPreferences.edit();
     }
 
 
@@ -114,6 +124,11 @@ public class MapsActivity extends FragmentActivity
                 setUpMap();
             }
         }
+    }
+
+    public void onMapReady(GoogleMap map) {
+        map.addMarker(new MarkerOptions()
+                .position(new LatLng(sharedPreferences.getLong(PARK_LAT_KEY, -1), sharedPreferences.getLong(PARK_LNG_KEY, -1))));
     }
 
     /**
@@ -183,6 +198,9 @@ public class MapsActivity extends FragmentActivity
                     centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
                 } else {
                     streetNameTextView.setText(R.string.address_unavailable);
+                }
+                if(mParkMarker != null) {
+                    addMarkerAndInfoWindow(true,mParkLocation,0);
                 }
                 return true;
             }
@@ -311,7 +329,6 @@ public class MapsActivity extends FragmentActivity
         if(park) {
             mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
-            mParkMarker.showInfoWindow();
         }else {
             mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                     .icon(BitmapDescriptorFactory.defaultMarker(color)));
@@ -396,10 +413,18 @@ public class MapsActivity extends FragmentActivity
             mParkMarker = null;
         }
     }
-
+    //also added the positions to sharedPreference
     private void setParkMarker(LatLng latLng) {
         addMarkerAndInfoWindow(true, latLng, 0);
         mParkLocation = latLng;
+        long lat = (long)latLng.latitude;
+        long lng = (long)latLng.longitude;
+
+        preferenceEditor.putLong(PARK_LAT_KEY, lat);
+        preferenceEditor.putLong(PARK_LNG_KEY, lng);
+
+        preferenceEditor.commit();
+
     }
 
     private LatLng locToLat(Location location) {
