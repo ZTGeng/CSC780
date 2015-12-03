@@ -32,6 +32,7 @@
     <string name="cancel_alarm_description">Are you sure you want to cancel the alarm? The marker shows where you set the alarm will be removed as well.</string>
     <string name="Yes">Yes</string>
     <string name="No">No</string>
+    <string name = "cancel_when_no_alarm">There is no alarm set up yet!</string>
     <!-- Arrays
     <string-array name="WEEKDAYS">
         <item>Sun</item>

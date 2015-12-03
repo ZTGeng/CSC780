@@ -484,7 +484,7 @@ public class MapsActivity extends AppCompatActivity
 
                 }
             });
-            
+
             dlg.setButton(DialogInterface.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener() {
 
                 @Override
@@ -493,8 +493,25 @@ public class MapsActivity extends AppCompatActivity
                 }
             });
 
+            /**
+             * Show the modal dialog. Once the user has clicked on a button, the
+             * dialog is automatically removed.
+             */
+            dlg.show();
 
+        }
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this).setTitle(R.string.cancel_alarm_title)
+                    .setMessage(R.string.cancel_when_no_alarm)
+                    .setIcon(android.R.drawable.ic_lock_idle_alarm);
+            AlertDialog dlg = builder.create();
 
+            dlg.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
             /**
              * Show the modal dialog. Once the user has clicked on a button, the
              * dialog is automatically removed.
