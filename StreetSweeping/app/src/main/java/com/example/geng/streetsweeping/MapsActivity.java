@@ -471,8 +471,36 @@ public class MapsActivity extends AppCompatActivity
 
     public void cancelAlarm(View view) {
         if (mParkMarker != null) {
-            removeParkMarker();
-            removeAlarm();
+            AlertDialog.Builder builder = new AlertDialog.Builder(this).setTitle(R.string.cancel_alarm_title)
+                    .setMessage(R.string.cancel_alarm_description)
+                    .setIcon(android.R.drawable.ic_lock_idle_alarm);
+            AlertDialog dlg = builder.create();
+
+            dlg.setButton(DialogInterface.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    removeParkMarker();
+                    removeAlarm();
+
+                }
+            });
+            
+            dlg.setButton(DialogInterface.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+
+
+            /**
+             * Show the modal dialog. Once the user has clicked on a button, the
+             * dialog is automatically removed.
+             */
+            dlg.show();
+
         }
     }
 

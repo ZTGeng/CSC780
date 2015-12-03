@@ -26,6 +26,12 @@
     <string name="set_alarm_description">Alert half an hour before next sweeping time. (All the old alarms will be removed.)</string>
     <string name="OK">OK</string>
     <string name="Cancel">Cancel</string>
+
+    <!--cancel alarm dialog-->
+    <string name="cancel_alarm_title">Cancel Alarm</string>
+    <string name="cancel_alarm_description">Are you sure you want to cancel the alarm? The marker shows where you set the alarm will be removed as well.</string>
+    <string name="Yes">Yes</string>
+    <string name="No">No</string>
     <!-- Arrays
     <string-array name="WEEKDAYS">
         <item>Sun</item>
