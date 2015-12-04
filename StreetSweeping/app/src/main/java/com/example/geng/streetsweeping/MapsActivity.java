@@ -66,7 +66,6 @@ public class MapsActivity extends AppCompatActivity
 
     Toolbar toolbar;
 
-    //AlarmHolder alarmHolder;
 
     StreetViewer streetViewer;
     StreetDAOInterface streetDAO;
@@ -85,6 +84,7 @@ public class MapsActivity extends AppCompatActivity
         setContentView(R.layout.main_layout);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
 
         setUpMapIfNeeded();
@@ -94,7 +94,6 @@ public class MapsActivity extends AppCompatActivity
         streetDAO = new StreetDAO(new DBHelper(this));
 //        streetNameTextView = (TextView) findViewById(R.id.streetname);
 //        sweepDateTextView = (TextView) findViewById(R.id.sweepdate);
-        //alarmHolder = new AlarmHolder(this);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
@@ -131,13 +130,13 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    public void showParkMarker() {
-        double temp_lat = Double.valueOf(sharedPreferences.getString(PARK_LAT_KEY, null));
-        double temp_lng = Double.valueOf(sharedPreferences.getString(PARK_LNG_KEY, null));
-        addMarkerAndInfoWindow(true, new LatLng(temp_lat, temp_lng), 0);
-        System.out.println("-------------inside showParkerMarker-------------");
-        return;
-    }
+//    public void showParkMarker() {
+//        double temp_lat = Double.valueOf(sharedPreferences.getString(PARK_LAT_KEY, null));
+//        double temp_lng = Double.valueOf(sharedPreferences.getString(PARK_LNG_KEY, null));
+//        addMarkerAndInfoWindow(true, new LatLng(temp_lat, temp_lng), 0);
+//        System.out.println("-------------inside showParkerMarker-------------");
+//        return;
+//    }
 
     /**
      * This is where we can add markers or lines, add listeners or move the camera
@@ -191,13 +190,19 @@ public class MapsActivity extends AppCompatActivity
             public void onMapLongClick(LatLng latLng) {
                 updateStreet(latLng, false);
                 mMap.clear();
-                addMarkerAndInfoWindow(false, latLng, RED);
-                if (mStreet != null) {
+                // Todo: mStreet is null or has no latlng: show default red marker; not null: show arrow marker
+                if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
+//                    addMarkerAndInfoWindow(false, latLng, RED);
+                    addDefaultMarker(latLng, RED);
+                } else {
                     streetViewer.addStreet(mStreet, true);
+//                    addMarkerAndInfoWindow(false, latLng, RED);
+                    addArrowMarker();
                 }
 //                showAddressAndMarker(latLng, RED);
                 if(mParkLocation != null) {
-                    addMarkerAndInfoWindow(true,mParkLocation,0);
+//                    addMarkerAndInfoWindow(true,mParkLocation,0);
+                    addParkMarker(mParkLocation);
                 }
             }
         });
@@ -224,14 +229,16 @@ public class MapsActivity extends AppCompatActivity
                 if (mLastLocation != null) {
                     updateStreet(locToLat(mLastLocation), false);
                     mMap.clear();
-                    addMarkerAndInfoWindow(false, locToLat(mLastLocation), BLUE);
+//                    addMarkerAndInfoWindow(false, locToLat(mLastLocation), BLUE);
+                    addDefaultMarker(locToLat(mLastLocation), BLUE);
 //                    showAddressAndMarker(mLastLocation, BLUE);
                     centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
 //                } else {
 //                    streetNameTextView.setText(R.string.address_unavailable);
                 }
                 if(mParkMarker != null) {
-                    addMarkerAndInfoWindow(true, mParkLocation, 0);
+//                    addMarkerAndInfoWindow(true, mParkLocation, 0);
+                    addParkMarker(mParkLocation);
                 }
                 return true;
             }
@@ -239,6 +246,7 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                // Todo: if infoWindow is shown, flip the arrow; if not , show InfoWindow
                 //marker.showInfoWindow(); // If we don't want to center to marker, uncomment this line and return true;
                 return false;
             }
@@ -344,21 +352,61 @@ public class MapsActivity extends AppCompatActivity
         return streetDAO.getStreetsByAddress(numberAndName);
     }
 
-    /**
-     * Add a Marker at a location on the map and popup the InfoWindow.
-     * @param latLng A location on the map.
-     * @param color Color of the Marker.
-     */
-    private void addMarkerAndInfoWindow(boolean park, LatLng latLng, float color) {
-        if (park) {
+//    /**
+//     * Add a Marker at a location on the map and popup the InfoWindow.
+//     * @param latLng A location on the map.
+//     * @param color Color of the Marker.
+//     */
+//    private void addMarkerAndInfoWindow(boolean park, LatLng latLng, float color) {
+//        if (park) {
+//
+//            mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+//        } else {
+//            mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+////                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow))
+//                    .rotation(0.5f));
+//            mMarker.showInfoWindow();
+//        }
+//    }
 
-            mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
-        } else {
-            mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+    private void addDefaultMarker(LatLng latLng, float color) {
+        mMarker = mMap.addMarker(new MarkerOptions().position(latLng)
                     .icon(BitmapDescriptorFactory.defaultMarker(color)));
-            mMarker.showInfoWindow();
+        mMarker.showInfoWindow();
+    }
+
+    private void addArrowMarker() {
+        if (mStreet == null || mStreet.getLatLngs().isEmpty()) return;
+        LatLng start = mStreet.getLatLngs().get(0);
+        LatLng end = mStreet.getLatLngs().get(mStreet.getLatLngs().size() - 1);
+        LatLng middle = new LatLng((start.latitude + end.latitude) / 2, (start.longitude + end.longitude) / 2);
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(middle);
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow));
+
+        double y = end.latitude - start.latitude;
+        double x = end.longitude - start.longitude;
+        float rotation;
+        if (mStreet.getSide().equals("L")) {
+            y = -y;
+            x = -x;
         }
+        rotation = (float) Math.toDegrees(Math.atan2(y, x)) * -1 + 90;
+        markerOptions.rotation(rotation);
+
+        double alpha = 0.5 / Math.sqrt(y * y + x * x);
+        markerOptions.infoWindowAnchor((float) (0.5 - x * alpha), (float) (0.5 - y * alpha));
+
+        mMarker = mMap.addMarker(markerOptions);
+        mMarker.showInfoWindow();
+    }
+
+    private void addParkMarker(LatLng latLng) {
+        mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
     }
 
     private String getNextSweepString() {
@@ -446,7 +494,8 @@ public class MapsActivity extends AppCompatActivity
     }
     //also added the positions to sharedPreference
     private void setParkMarker(LatLng latLng) {
-        addMarkerAndInfoWindow(true, latLng, 0);
+//        addMarkerAndInfoWindow(true, latLng, 0);
+        addParkMarker(latLng);
         mParkLocation = latLng;
         String lat = String.valueOf(latLng.latitude);
         String lng = String.valueOf(latLng.longitude);
@@ -507,7 +556,8 @@ public class MapsActivity extends AppCompatActivity
             updateStreet(locToLat(mLastLocation), false);
             mMap.clear();
             centerMap(mLastLocation);
-            addMarkerAndInfoWindow(false, locToLat(mLastLocation), BLUE);
+//            addMarkerAndInfoWindow(false, locToLat(mLastLocation), BLUE);
+            addDefaultMarker(locToLat(mLastLocation), BLUE);
         }
 
     }
