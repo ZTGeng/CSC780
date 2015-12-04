@@ -1,5 +1,13 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
+#### Week 11.15 - 11.21
+
+1. Added toolbar
+2. Added clear alarm option for the user to cancel the alarm on toolbar
+3. Added a special marker to show where the alarm is set 
+4. The park marker will disappear if the clear marker btn has been clicked
+5. Restructured the code for better reusability
+6. Will mark on which street side street sweeping sign is
 
 #### Week 11.8 - 11.14
 
