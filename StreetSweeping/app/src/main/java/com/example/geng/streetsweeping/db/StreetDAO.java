@@ -162,7 +162,8 @@ public class StreetDAO implements StreetDAOInterface {
                             }
                             String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday")).toUpperCase();
                             weekdaysSame[WEEKDAYS_HASH.get(weekday)] = true;
-                            addLatLng(resultCursor, latLngsSame);
+                            if (latLngsSame.isEmpty())
+                                addLatLng(resultCursor, latLngsSame);
                             useOtherSide = false; // No need to use the information below
                         }
                     } else { // lower_same == 0 && upper_same == 0
@@ -181,7 +182,8 @@ public class StreetDAO implements StreetDAOInterface {
                             }
                             String weekday = resultCursor.getString(resultCursor.getColumnIndex("Weekday")).toUpperCase();
                             weekdaysOther[WEEKDAYS_HASH.get(weekday)] = true;
-                            addLatLng(resultCursor, latLngsOther);
+                            if (latLngsOther.isEmpty())
+                                addLatLng(resultCursor, latLngsOther);
                         }
                     }
                 } while (resultCursor.moveToNext());

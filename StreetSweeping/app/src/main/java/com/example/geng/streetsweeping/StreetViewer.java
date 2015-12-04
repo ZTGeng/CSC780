@@ -21,37 +21,13 @@ public class StreetViewer {
         mMap = map;
     }
 
-    void addStreets(List<Street> streets) {
-        if (mMap.getCameraPosition().zoom < 15) return;
-
-        for (Street street : streets) {
-            addStreet(street);
-        }
-    }
-
     void addStreet(Street street, boolean active) {
-        PolylineOptions polylineOptions = new PolylineOptions();
-        for (LatLng latLng : street.getLatLngs()) {
-            polylineOptions.add(latLng);
+        List<LatLng> latLngs = street.getLatLngs();
+        for (int i = 1; i < latLngs.size(); i++) {
+            mMap.addPolyline(new PolylineOptions().add(latLngs.get(i - 1), latLngs.get(i))
+                    .width(streetWidth)
+                    .color(active ? RED : GREY));
         }
-        polylineOptions.width(streetWidth); // default: 10
-        polylineOptions.color(active ? RED : GREY);
-        mMap.addPolyline(polylineOptions);
-    }
-
-    void addStreet(Street street) {
-        addStreet(street, false);
-    }
-
-    void activeStreet(Street street) {
-        addStreet(street, true);
-    }
-
-    void switchStreet(Street prev, Street post) {
-        if (prev != null) {
-            addStreet(prev);
-        }
-        addStreet(post, true);
     }
 
 }
