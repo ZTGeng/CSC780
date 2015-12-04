@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StreetSweeping</string>
+    <string name="app_name">SFStreetSweeping</string>
     <string name="title_activity_maps">Map</string>
 
     <!-- Under main screen -->
