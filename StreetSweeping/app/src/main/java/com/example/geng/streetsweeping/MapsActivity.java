@@ -57,6 +57,7 @@ public class MapsActivity extends AppCompatActivity
     Marker mParkMarker;
     LatLng mParkLocation;
     Street mParkStreet;
+    LatLng mToParkLocation;
     SharedPreferences sharedPreferences;
 
     Toolbar toolbar;
@@ -167,6 +168,7 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
+                mToParkLocation = latLng;
                 updateStreet(latLng, false);
                 mMap.clear();
                 if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
@@ -175,7 +177,7 @@ public class MapsActivity extends AppCompatActivity
                     streetViewer.addStreet(mStreet, true);
                     addArrowMarker();
                 }
-                if(mParkLocation != null) {
+                if(mParkMarker != null) {
                     addParkMarker(mParkLocation);
                 }
             }
@@ -201,9 +203,16 @@ public class MapsActivity extends AppCompatActivity
                 }
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
+                    mToParkLocation = locToLat(mLastLocation);
                     updateStreet(locToLat(mLastLocation), false);
                     mMap.clear();
-                    addDefaultMarker(locToLat(mLastLocation), BLUE);
+//                    addDefaultMarker(locToLat(mLastLocation), BLUE);
+                    if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
+                        addDefaultMarker(locToLat(mLastLocation), BLUE);
+                    } else {
+                        streetViewer.addStreet(mStreet, true);
+                        addArrowMarker();
+                    }
                     centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
                 }
                 if(mParkMarker != null) {
@@ -323,7 +332,8 @@ public class MapsActivity extends AppCompatActivity
 
     private void addParkMarker(LatLng latLng) {
         mParkMarker = mMap.addMarker(new MarkerOptions().position(latLng)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car24))
+                .anchor(.5f, .5f));
     }
 
     private String getNextSweepString() {
@@ -342,7 +352,7 @@ public class MapsActivity extends AppCompatActivity
         return String.format(getString(R.string.next_time), days, hrs, mins);
     }
 
-    private void showAlert(Marker marker) {
+    private void showAlert(final Marker marker) {
 
         /**
          * An AlertDialog builder is used to build up the details of the modal
@@ -353,16 +363,22 @@ public class MapsActivity extends AppCompatActivity
                 .setMessage(R.string.set_alarm_description)
                 .setIcon(android.R.drawable.ic_lock_idle_alarm);
         AlertDialog dlg = builder.create();
-        final Marker parkMarker = marker;
+//        final Marker parkMarker = marker;
         dlg.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 removeAlarm();
                 setAlarm();
 
-                mParkStreet = mStreet;
                 removeParkMarker();
-                setParkMarker(parkMarker.getPosition());
+//                mParkStreet = mStreet;
+//                setParkMarker(parkMarker.getPosition());
+                if (mToParkLocation == null) {
+                    mToParkLocation = marker.getPosition();
+                }
+                setParkMarker(mToParkLocation);
+                marker.hideInfoWindow();
+                mParkMarker.showInfoWindow();
             }
         });
 
@@ -400,6 +416,7 @@ public class MapsActivity extends AppCompatActivity
             mParkMarker.remove();
             mParkMarker = null;
             mParkStreet = null;
+            mParkLocation = null;
             if (sharedPreferences != null) {
                 sharedPreferences.edit().clear().apply();
             }
@@ -408,6 +425,7 @@ public class MapsActivity extends AppCompatActivity
     //also added the positions to sharedPreference
     private void setParkMarker(LatLng latLng) {
         addParkMarker(latLng);
+        mParkStreet = mStreet;
         mParkLocation = latLng;
         String lat = String.valueOf(latLng.latitude);
         String lng = String.valueOf(latLng.longitude);
@@ -500,10 +518,17 @@ public class MapsActivity extends AppCompatActivity
         }
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
+            mToParkLocation = locToLat(mLastLocation);
             updateStreet(locToLat(mLastLocation), false);
             mMap.clear();
             centerMap(mLastLocation);
-            addDefaultMarker(locToLat(mLastLocation), BLUE);
+//            addDefaultMarker(locToLat(mLastLocation), BLUE);
+            if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
+                addDefaultMarker(locToLat(mLastLocation), BLUE);
+            } else {
+                streetViewer.addStreet(mStreet, true);
+                addArrowMarker();
+            }
         }
 
     }
