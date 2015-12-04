@@ -62,7 +62,7 @@ public class MapsActivity extends AppCompatActivity
 
     Toolbar toolbar;
 
-    StreetViewer streetViewer;
+    StreetViewer streetViewer; // Todo change name to StreetDrawer
     StreetDAOInterface streetDAO;
 
     // Alarm
@@ -76,14 +76,22 @@ public class MapsActivity extends AppCompatActivity
         setContentView(R.layout.main_layout);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-
         setSupportActionBar(toolbar);
+
+        streetDAO = new StreetDAO(new DBHelper(this));
+
+        // check if there is alarm
+        sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+        if (sharedPreferences.contains(PARK_LAT_KEY)) {
+            mParkLocation = new LatLng((double) sharedPreferences.getLong(PARK_LAT_KEY, 0),
+                    (double) sharedPreferences.getLong(PARK_LNG_KEY, 0));
+            mParkStreet = getStreet(mParkLocation);
+        }
 
         setUpMapIfNeeded();
         // mMap is supposed to be not null since this point.
 
         streetViewer = new StreetViewer(mMap);
-        streetDAO = new StreetDAO(new DBHelper(this));
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
@@ -169,7 +177,7 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onMapLongClick(LatLng latLng) {
                 mToParkLocation = latLng;
-                updatemStreet(latLng);
+                mStreet = getStreet(latLng);
                 mMap.clear();
                 if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
                     addDefaultMarker(latLng, RED);
@@ -204,7 +212,7 @@ public class MapsActivity extends AppCompatActivity
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
                     mToParkLocation = locToLat(mLastLocation);
-                    updatemStreet(locToLat(mLastLocation));
+                    mStreet = getStreet(locToLat(mLastLocation));
                     mMap.clear();
 //                    addDefaultMarker(locToLat(mLastLocation), BLUE);
                     if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
@@ -241,16 +249,20 @@ public class MapsActivity extends AppCompatActivity
         });
     }
 
-    private void updatemStreet(LatLng latLng) {
+    private Street getStreet(LatLng latLng) {
+        Street street;
         String[] address = getStreetName(latLng);
-        if (address.length != 0) {
-            mStreet = getStreetByAddress(address[0]);
-            if (mStreet.getLatLngs().isEmpty()) {
-                mStreet = null;
-            } else if (distance(mStreet.getLatLngs().get(0), latLng) > 0.01) {
-                mStreet = null;
-            }
+        if (address.length == 0) {
+            return null;
         }
+        street = getStreetByAddress(address[0]);
+        if (street.getLatLngs().isEmpty()) {
+            return null;
+        }
+        if (distance(street.getLatLngs().get(0), latLng) > 0.01) {
+            return null;
+        }
+        return street;
     }
 
     private double distance(LatLng a, LatLng b) {
@@ -432,16 +444,16 @@ public class MapsActivity extends AppCompatActivity
         addParkMarker(latLng);
         mParkStreet = mStreet;
         mParkLocation = latLng;
-        String lat = String.valueOf(latLng.latitude);
-        String lng = String.valueOf(latLng.longitude);
+//        String lat = String.valueOf(latLng.latitude);
+//        String lng = String.valueOf(latLng.longitude);
 
         if (sharedPreferences == null) {
             sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
         }
 
         sharedPreferences.edit()
-                .putString(PARK_LAT_KEY, lat)
-                .putString(PARK_LNG_KEY, lng)
+                .putLong(PARK_LAT_KEY, (long) latLng.latitude)
+                .putLong(PARK_LNG_KEY, (long) latLng.longitude)
                 .apply();
 
     }
@@ -524,7 +536,7 @@ public class MapsActivity extends AppCompatActivity
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             mToParkLocation = locToLat(mLastLocation);
-            updatemStreet(locToLat(mLastLocation));
+            mStreet = getStreet(locToLat(mLastLocation));
             mMap.clear();
             centerMap(mLastLocation);
 //            addDefaultMarker(locToLat(mLastLocation), BLUE);
