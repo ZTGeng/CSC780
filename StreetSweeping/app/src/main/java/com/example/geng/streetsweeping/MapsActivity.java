@@ -46,7 +46,7 @@ public class MapsActivity extends AppCompatActivity
 
     private static final float BLUE = BitmapDescriptorFactory.HUE_AZURE;
     private static final float RED  = BitmapDescriptorFactory.HUE_RED;
-    private static final String PREFERENCES_FILE_NAME = "MyAppPreferences";
+    private static final String PREFERENCES_FILE_NAME = "SFSU.CSC780.StreetSweeping";
     private static final String PARK_LAT_KEY = "parkLatKey";
     private static final String PARK_LNG_KEY = "parkLngKey";
 
@@ -59,10 +59,11 @@ public class MapsActivity extends AppCompatActivity
     Street mParkStreet;
     LatLng mToParkLocation;
     SharedPreferences sharedPreferences;
+    boolean hasAlarm;
 
     Toolbar toolbar;
 
-    StreetViewer streetViewer; // Todo change name to StreetDrawer
+    StreetDrawer streetDrawer;
     StreetDAOInterface streetDAO;
 
     // Alarm
@@ -80,18 +81,22 @@ public class MapsActivity extends AppCompatActivity
 
         streetDAO = new StreetDAO(new DBHelper(this));
 
-        // check if there is alarm
-        sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
-        if (sharedPreferences.contains(PARK_LAT_KEY)) {
-            mParkLocation = new LatLng((double) sharedPreferences.getLong(PARK_LAT_KEY, 0),
-                    (double) sharedPreferences.getLong(PARK_LNG_KEY, 0));
-            mParkStreet = getStreet(mParkLocation);
-        }
-
         setUpMapIfNeeded();
         // mMap is supposed to be not null since this point.
 
-        streetViewer = new StreetViewer(mMap);
+        // check if there is alarm
+        sharedPreferences = getSharedPreferences(PREFERENCES_FILE_NAME, MODE_PRIVATE);
+        if (sharedPreferences.contains(PARK_LAT_KEY)) {
+            hasAlarm = true;
+            String lat = sharedPreferences.getString(PARK_LAT_KEY, "0");
+            String lng = sharedPreferences.getString(PARK_LNG_KEY, "0");
+            mParkLocation = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
+            mParkStreet = getStreet(mParkLocation);
+        } else {
+            hasAlarm = false;
+        }
+
+        streetDrawer = new StreetDrawer(mMap);
 
         buildGoogleApiClient(); // Once client connected, will center map and show street name
         mGoogleApiClient.connect();
@@ -182,10 +187,10 @@ public class MapsActivity extends AppCompatActivity
                 if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
                     addDefaultMarker(latLng, RED);
                 } else {
-                    streetViewer.addStreet(mStreet, true);
+                    streetDrawer.addStreet(mStreet, true);
                     addArrowMarker();
                 }
-                if(mParkMarker != null) {
+                if(hasAlarm) {
                     addParkMarker(mParkLocation);
                 }
             }
@@ -218,12 +223,12 @@ public class MapsActivity extends AppCompatActivity
                     if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
                         addDefaultMarker(locToLat(mLastLocation), BLUE);
                     } else {
-                        streetViewer.addStreet(mStreet, true);
+                        streetDrawer.addStreet(mStreet, true);
                         addArrowMarker();
                     }
                     centerMap(mLastLocation); // If we don't want to zoom to 16, comment this line and return false.
                 }
-                if(mParkMarker != null) {
+                if(hasAlarm) {
                     addParkMarker(mParkLocation);
                 }
                 return true;
@@ -256,7 +261,7 @@ public class MapsActivity extends AppCompatActivity
             return null;
         }
         street = getStreetByAddress(address[0]);
-        if (street.getLatLngs().isEmpty()) {
+        if (street == null || street.getLatLngs().isEmpty()) {
             return null;
         }
         if (distance(street.getLatLngs().get(0), latLng) > 0.01) {
@@ -421,11 +426,14 @@ public class MapsActivity extends AppCompatActivity
         Intent myIntent = new Intent(MapsActivity.this, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(MapsActivity.this, 0, myIntent, 0);
         alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+        hasAlarm = true;
     }
 
     private void removeAlarm() {
-        if (pendingIntent != null)
+        if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent);
+            hasAlarm = false;
+        }
     }
 
     private void removeParkMarker() {
@@ -444,22 +452,21 @@ public class MapsActivity extends AppCompatActivity
         addParkMarker(latLng);
         mParkStreet = mStreet;
         mParkLocation = latLng;
-//        String lat = String.valueOf(latLng.latitude);
-//        String lng = String.valueOf(latLng.longitude);
+        String lat = String.valueOf(latLng.latitude);
+        String lng = String.valueOf(latLng.longitude);
 
         if (sharedPreferences == null) {
-            sharedPreferences = getApplicationContext().getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+            sharedPreferences = getSharedPreferences(PREFERENCES_FILE_NAME, MODE_PRIVATE);
         }
 
         sharedPreferences.edit()
-                .putLong(PARK_LAT_KEY, (long) latLng.latitude)
-                .putLong(PARK_LNG_KEY, (long) latLng.longitude)
+                .putString(PARK_LAT_KEY, lat)
+                .putString(PARK_LNG_KEY, lng)
                 .apply();
-
     }
 
     public void cancelAlarm(View view) {
-        if (mParkMarker != null) {
+        if (hasAlarm) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this).setTitle(R.string.cancel_alarm_title)
                     .setMessage(R.string.cancel_alarm_description)
                     .setIcon(android.R.drawable.ic_lock_idle_alarm);
@@ -543,8 +550,11 @@ public class MapsActivity extends AppCompatActivity
             if (mStreet == null || mStreet.getLatLngs().isEmpty()) {
                 addDefaultMarker(locToLat(mLastLocation), BLUE);
             } else {
-                streetViewer.addStreet(mStreet, true);
+                streetDrawer.addStreet(mStreet, true);
                 addArrowMarker();
+            }
+            if(hasAlarm) {
+                addParkMarker(mParkLocation);
             }
         }
 

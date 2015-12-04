@@ -10,14 +10,14 @@ import java.util.List;
 /**
  * Created by geng on 10/6/15.
  */
-public class StreetViewer {
+public class StreetDrawer {
     public static int streetWidth = 5;
     private final static int RED = 0xffff0000;
     private final static int GREY = 0xff808080;
 
     GoogleMap mMap;
 
-    public StreetViewer(GoogleMap map) {
+    public StreetDrawer(GoogleMap map) {
         mMap = map;
     }
 
