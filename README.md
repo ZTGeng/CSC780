@@ -1,5 +1,16 @@
 # CSC780_Android
 Android development project for CSC 780 of SFSU
+
+#### Week 11.22 - 12.5
+1. Clear alarm button is working, which clear an alarm if there is one
+2. Show dialog for user's confirmation if user want to clear alarm
+3. Added arrows on street view to show on which side of the street the user is
+4. If the user clicks the car icon where user sets alarm last time, user can see the street sweeping sign and have option to cancel alarm
+5. SharedPreference that stores user's last parking location is working
+6. Will added find car function
+7. Will add overflow button
+8. Will do the final code cleaning up
+
 #### Week 11.15 - 11.21
 
 1. Added toolbar
