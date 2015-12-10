@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/center_car"
+        android:orderInCategory="100"
+        android:title="Center to My Car"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/cancel_alarm"
+        android:orderInCategory="100"
+        android:title="Cancel Alarm"
+        app:showAsAction="never"/>
+</menu>

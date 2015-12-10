@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -104,6 +106,29 @@ public class MapsActivity extends AppCompatActivity
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.center_car:
+                if (mParkMarker != null) {
+                    centerMap(mParkMarker.getPosition());
+                }
+                return true;
+            case R.id.cancel_alarm:
+                cancelAlarm(null);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -281,7 +306,11 @@ public class MapsActivity extends AppCompatActivity
      * @param location the new center of the map.
      */
     private void centerMap(Location location) {
-        CameraPosition cameraPosition = new CameraPosition(locToLat(location), 16, 0, 0);
+        centerMap(locToLat(location));
+    }
+
+    private void centerMap(LatLng latLng) {
+        CameraPosition cameraPosition = new CameraPosition(latLng, 16, 0, 0);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
