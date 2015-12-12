@@ -22,33 +22,5 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_weight="9" />
 
-    <!--
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:id="@+id/info_panel"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp">
-
-        <TextView
-            android:id="@+id/streetname"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/locating"
-            android:lines="1"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp" />
-
-        <TextView
-            android:id="@+id/sweepdate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/date_unavailable"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp" />
-
-    </LinearLayout>
-    -->
 
 </LinearLayout>
