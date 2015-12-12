@@ -5,7 +5,7 @@
     <item
         android:id="@+id/center_car"
         android:orderInCategory="100"
-        android:title="Center to My Car"
+        android:title="Find My Car"
         app:showAsAction="never"/>
 
     <item
