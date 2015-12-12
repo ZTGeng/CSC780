@@ -33,6 +33,10 @@
     <string name="Yes">Yes</string>
     <string name="No">No</string>
     <string name = "cancel_when_no_alarm">There is no alarm set up yet!</string>
+
+    <!--center to my car dialog-->
+    <string name="center_car_title">Center My Car</string>
+    <string name="no_car_parked">Can not center your car, since you have not set street cleaning alarm yet.</string>
     <!-- Arrays
     <string-array name="WEEKDAYS">
         <item>Sun</item>
